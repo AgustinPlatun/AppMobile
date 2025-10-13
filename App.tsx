@@ -1,10 +1,24 @@
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
+import { HomeScreen } from './src/screens/HomeScreen';
+import { initDatabase } from './src/database/database';
 
 export default function App() {
+  useEffect(() => {
+    (async () => {
+      try {
+        await initDatabase();
+      } catch (e) {
+        console.error(e);
+        Alert.alert('Error', 'No se pudo inicializar la base de datos');
+      }
+    })();
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
+      <HomeScreen />
       <StatusBar style="auto" />
     </View>
   );
@@ -13,8 +27,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#f8f9fa',
   },
 });
