@@ -63,3 +63,12 @@ export interface ConfiguracionApp {
   moneda: string;
   margenGananciaPorDefecto: number;
 }
+
+export interface Cliente {
+  id?: number;
+  nombre: string;
+  apellido: string;
+  telefono?: string;
+  fechaCreacion?: string;
+  activo?: boolean;
+}

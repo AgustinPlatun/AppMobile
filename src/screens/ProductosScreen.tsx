@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import * as NavigationBar from 'expo-navigation-bar';
 import {
   View,
   Text,
@@ -27,6 +28,19 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
 
   useEffect(() => {
     cargarProductos();
+  }, []);
+
+  // Ajustar Navigation Bar para esta pantalla
+  useEffect(() => {
+    (async () => {
+      try {
+        await NavigationBar.setBackgroundColorAsync('transparent');
+        await NavigationBar.setButtonStyleAsync('light');
+        if (NavigationBar.setBehaviorAsync) {
+          await NavigationBar.setBehaviorAsync('overlay-swipe');
+        }
+      } catch {}
+    })();
   }, []);
 
   // Recargar al cerrar el modal (después de guardar)
@@ -124,6 +138,7 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
         <TextInput
           style={styles.busquedaInput}
           placeholder="Buscar productos..."
+          placeholderTextColor="#6b7280"
           value={busqueda}
           onChangeText={setBusqueda}
         />

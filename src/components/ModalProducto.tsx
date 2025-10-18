@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,10 @@ import {
   TextInput,
   ScrollView,
   Alert,
-  Modal
+  Modal,
+  Platform
 } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 import { styles } from '../styles/ModalProductoStyles';
 import { appendProductoToLocalExcel } from '../utils/excel';
 
@@ -27,6 +29,21 @@ interface ModalProductoProps {
 export const ModalProducto: React.FC<ModalProductoProps> = ({ visible, onCerrar, onGuardado }) => {
   const [nombre, setNombre] = useState('');
   const [cantidad, setCantidad] = useState('');
+
+  // En Android, asegurar barra de navegación transparente e iconos blancos cuando el modal está visible
+  useEffect(() => {
+    if (Platform.OS === 'android' && visible) {
+      (async () => {
+        try {
+          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setButtonStyleAsync('light');
+          if (NavigationBar.setBehaviorAsync) {
+            await NavigationBar.setBehaviorAsync('overlay-swipe');
+          }
+        } catch {}
+      })();
+    }
+  }, [visible]);
 
   const limpiarFormulario = () => {
     setNombre('');
@@ -102,6 +119,7 @@ export const ModalProducto: React.FC<ModalProductoProps> = ({ visible, onCerrar,
             <TextInput
               style={styles.input}
               placeholder="Ej: Torta de chocolate, Pan integral"
+              placeholderTextColor="#6b7280"
               value={nombre}
               onChangeText={setNombre}
             />
@@ -112,6 +130,7 @@ export const ModalProducto: React.FC<ModalProductoProps> = ({ visible, onCerrar,
             <TextInput
               style={styles.input}
               placeholder="Ej: 12 (porciones), 20 (unidades)"
+              placeholderTextColor="#6b7280"
               value={cantidad}
               onChangeText={setCantidad}
               keyboardType="numeric"

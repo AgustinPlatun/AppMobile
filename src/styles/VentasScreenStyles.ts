@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#121212',
@@ -21,7 +21,7 @@ export const styles = StyleSheet.create({
   },
   botonVolverTexto: {
     fontSize: 16,
-    color: '#3b82f6',
+    color: '#007bff',
   },
   headerTitle: {
     fontSize: 24,
@@ -56,7 +56,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
   },
-  ingredienteCard: {
+  ventaCard: {
     backgroundColor: '#1e1e1e',
     borderRadius: 12,
     padding: 16,
@@ -67,147 +67,63 @@ export const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  ingredienteHeader: {
+  ventaHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 0,
+    marginBottom: 4,
   },
-  ingredienteInfo: {
+  ventaInfo: {
     flex: 1,
     marginRight: 12,
   },
-  ingredienteNombre: {
+  ventaCliente: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#f1f3f5',
     marginBottom: 4,
   },
-  proveedor: {
+  ventaFecha: {
     fontSize: 14,
     color: '#adb5bd',
-    marginBottom: 0,
   },
-  categoria: {
-    fontSize: 12,
-    color: '#60a5fa',
-    backgroundColor: '#0b1727',
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 12,
-    alignSelf: 'flex-start',
-  },
-  precioContainer: {
-    alignItems: 'flex-end',
-  },
-  precio: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#28a745',
-    marginTop: 4,
-  },
-  unidad: {
-    fontSize: 12,
-    color: '#adb5bd',
-    marginTop: 2,
-  },
-  stockContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#1f1f1f',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f1f1f',
-  },
-  stockInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  stockLabel: {
-    fontSize: 14,
-    color: '#adb5bd',
-    marginRight: 8,
-  },
-  stockCantidad: {
+  ventaTotal: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#f1f3f5',
-    marginRight: 8,
-  },
-  stockBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  stockBadgeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: '#fff',
+    color: '#28a745',
+    fontWeight: '700',
+    marginTop: 4,
   },
   accionesContainer: {
     flexDirection: 'row',
     gap: 8,
     alignItems: 'center',
   },
-  botonEditar: {
-    backgroundColor: '#3b82f6',
-    padding: 8,
-    borderRadius: 6,
-  },
-  botonEliminar: {
-    backgroundColor: '#dc3545',
-    padding: 8,
-    borderRadius: 6,
-  },
-  // variantes chicas para header, similares a Productos
-  botonEditarChico: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  botonAccionChico: {
-    backgroundColor: '#dc3545',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  botonAccionTextoChico: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  botonTexto: {
-    color: '#fff',
-    fontSize: 16,
-  },
-  ingredienteFooter: {
+  ventaAcciones: {
+    marginTop: 12,
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 8,
+    justifyContent: 'flex-end',
   },
-  fechaCompra: {
-    fontSize: 12,
-    color: '#adb5bd',
+  ventaEliminarBtn: {
+    backgroundColor: '#dc3545',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
-  fechaVencimiento: {
-    fontSize: 12,
-    color: '#fd7e14',
+  ventaEliminarTexto: {
+    color: '#fff',
+    fontWeight: '700',
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    padding: 24,
   },
   emptyText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#f1f3f5',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   emptySubtext: {
     fontSize: 14,
@@ -215,3 +131,5 @@ export const styles = StyleSheet.create({
     textAlign: 'center',
   },
 });
+
+export default styles;

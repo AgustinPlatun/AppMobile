@@ -1,5 +1,6 @@
-import React from 'react';
-import { Modal, View, Text, TouchableOpacity } from 'react-native';
+import React, { useEffect } from 'react';
+import { Modal, View, Text, TouchableOpacity, Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 
 interface ConfirmModalProps {
   visible: boolean;
@@ -12,6 +13,20 @@ interface ConfirmModalProps {
 }
 
 export const ConfirmModal: React.FC<ConfirmModalProps> = ({ visible, title = 'Confirmar', message, confirmText = 'Eliminar', cancelText = 'Cancelar', onConfirm, onCancel }) => {
+  // En Android, mantener la Navigation Bar transparente e iconos blancos cuando el modal está visible
+  useEffect(() => {
+    if (Platform.OS === 'android' && visible) {
+      (async () => {
+        try {
+          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setButtonStyleAsync('light');
+          if (NavigationBar.setBehaviorAsync) {
+            await NavigationBar.setBehaviorAsync('overlay-swipe');
+          }
+        } catch {}
+      })();
+    }
+  }, [visible]);
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onCancel}>
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', alignItems: 'center', padding: 24 }}>

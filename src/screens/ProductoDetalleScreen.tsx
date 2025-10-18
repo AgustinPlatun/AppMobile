@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, FlatList, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, TextInput, Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 import { Producto } from '../types';
 import { styles } from '../styles/ProductoDetalleScreenStyles';
 import { ModalAgregarIngrediente } from '../components/ModalAgregarIngrediente';
@@ -31,6 +32,21 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
       // Nada más que precargar: los totales se recalculan al vuelo
     }
   }, [producto?.id]);
+
+  // Ajustar Navigation Bar para esta pantalla
+  React.useEffect(() => {
+    if (Platform.OS === 'android') {
+      (async () => {
+        try {
+          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setButtonStyleAsync('light');
+          if (NavigationBar.setBehaviorAsync) {
+            await NavigationBar.setBehaviorAsync('overlay-swipe');
+          }
+        } catch {}
+      })();
+    }
+  }, []);
   const totalConGanancia = React.useMemo(() => {
     const pct = Number(gananciaPct);
     if (!Number.isFinite(pct)) return totalCosto;

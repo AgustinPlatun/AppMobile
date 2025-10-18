@@ -282,20 +282,121 @@ export function writeProductoIngredientesAllToLocalExcel(items: ProductoIngredie
 export async function initExcelStorage() {
   if (Platform.OS === 'web') return;
   try {
-    const [p, i, r] = await Promise.all([
+    const [p, i, r, c, v, vl] = await Promise.all([
       AsyncStorage.getItem(STORAGE_KEY),
       AsyncStorage.getItem(ING_STORAGE_KEY),
       AsyncStorage.getItem(PROD_ING_STORAGE_KEY),
+      AsyncStorage.getItem(CLIENTES_STORAGE_KEY),
+      AsyncStorage.getItem(VENTAS_STORAGE_KEY),
+      AsyncStorage.getItem(VENTA_LINEAS_STORAGE_KEY),
     ]);
     memProductos = p ? JSON.parse(p) : [];
     memIngredientes = i ? JSON.parse(i) : [];
     memProdIng = r ? JSON.parse(r) : [];
+    memClientes = c ? JSON.parse(c) : [];
+    memVentas = v ? JSON.parse(v) : [];
+    memVentaLineas = vl ? JSON.parse(vl) : [];
   } catch (e) {
     console.error('initExcelStorage error', e);
     memProductos = [];
     memIngredientes = [];
     memProdIng = [];
+    memClientes = [];
+    memVentas = [];
+    memVentaLineas = [];
   }
+}
+
+// ====== CLIENTES ======
+export type ClienteExcel = {
+  id?: number;
+  nombre: string;
+  apellido: string;
+  telefono?: string;
+  fechaCreacion?: string;
+  activo?: boolean;
+};
+
+const CLIENTES_STORAGE_KEY = 'clientes_excel_v1';
+let memClientes: ClienteExcel[] = [];
+
+export function readClientesFromLocalExcel(): ClienteExcel[] {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const base64 = window.localStorage.getItem(CLIENTES_STORAGE_KEY);
+    if (!base64) return [];
+    try {
+      const wb = XLSX.read(base64, { type: 'base64' });
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      if (!ws) return [];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws);
+      return rows.map(r => ({
+        id: r.id ? Number(r.id) : undefined,
+        nombre: String(r.nombre || '').trim(),
+        apellido: String(r.apellido || '').trim(),
+        telefono: r.telefono ? String(r.telefono) : undefined,
+        fechaCreacion: r.fechaCreacion ? String(r.fechaCreacion) : new Date().toISOString(),
+        activo: r.activo === undefined ? true : Boolean(r.activo),
+      })).filter(r => r.nombre && r.apellido);
+    } catch (e) {
+      console.error('Error leyendo Excel de clientes desde storage', e);
+      return [];
+    }
+  }
+  return memClientes;
+}
+
+export function writeClientesToLocalExcel(clientes: ClienteExcel[]) {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const rows = clientes.map(c => ({
+      id: c.id ?? '',
+      nombre: c.nombre,
+      apellido: c.apellido,
+      telefono: c.telefono ?? '',
+      fechaCreacion: c.fechaCreacion ?? new Date().toISOString(),
+      activo: c.activo ?? true,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'clientes');
+    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    window.localStorage.setItem(CLIENTES_STORAGE_KEY, base64);
+    return;
+  }
+  memClientes = clientes;
+  AsyncStorage.setItem(CLIENTES_STORAGE_KEY, JSON.stringify(clientes)).catch((e: any) => console.error('Persist clientes error', e));
+}
+
+export function appendClienteToLocalExcel(cliente: Omit<ClienteExcel, 'id'>): number {
+  const clientes = readClientesFromLocalExcel();
+  const maxId = clientes.reduce((m, p) => (p.id && p.id > m ? p.id : m), 0);
+  const id = maxId + 1;
+  const nuevo = { id, ...cliente } as ClienteExcel;
+  const updated = [nuevo, ...clientes];
+  writeClientesToLocalExcel(updated);
+  return id;
+}
+
+export function deleteClienteFromLocalExcel(clienteId: number): boolean {
+  const clientes = readClientesFromLocalExcel();
+  const filtered = clientes.filter(c => (c.id ?? -1) !== clienteId);
+  if (filtered.length === clientes.length) return false;
+  writeClientesToLocalExcel(filtered);
+  return true;
+}
+
+export function updateClienteInLocalExcel(updated: ClienteExcel): boolean {
+  const clientes = readClientesFromLocalExcel();
+  const idx = clientes.findIndex(c => (c.id ?? -1) === (updated.id ?? -2));
+  if (idx === -1) return false;
+  clientes[idx] = {
+    ...clientes[idx],
+    ...updated,
+  } as ClienteExcel;
+  writeClientesToLocalExcel(clientes);
+  return true;
 }
 
 export function appendProductoIngredienteToLocalExcel(item: Omit<ProductoIngredienteExcel, 'id'>): number {
@@ -334,4 +435,187 @@ export function deleteIngredienteFromLocalExcel(ingredienteId: number): boolean 
   const remaining = all.filter(r => r.ingredienteId !== ingredienteId);
   writeProductoIngredientesAllToLocalExcel(remaining);
   return true;
+}
+
+// ====== VENTAS ======
+export type VentaExcel = {
+  id?: number;
+  cliente: string; // puede ser vacío
+  fecha: string; // ISO
+  total: number;
+};
+
+export type VentaLineaExcel = {
+  id?: number;
+  ventaId: number;
+  productoId: number;
+  nombre: string;
+  cantidad: number;
+  unit: number;
+  total: number;
+};
+
+const VENTAS_STORAGE_KEY = 'ventas_excel_v1';
+const VENTA_LINEAS_STORAGE_KEY = 'venta_lineas_excel_v1';
+let memVentas: VentaExcel[] = [];
+let memVentaLineas: VentaLineaExcel[] = [];
+
+export function readVentasFromLocalExcel(): VentaExcel[] {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const base64 = window.localStorage.getItem(VENTAS_STORAGE_KEY);
+    if (!base64) return [];
+    try {
+      const wb = XLSX.read(base64, { type: 'base64' });
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      if (!ws) return [];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws);
+      return rows.map(r => ({
+        id: r.id ? Number(r.id) : undefined,
+        cliente: String(r.cliente || ''),
+        fecha: r.fecha ? String(r.fecha) : new Date().toISOString(),
+        total: Number(r.total || 0),
+      })).filter(v => Number.isFinite(v.total));
+    } catch (e) {
+      console.error('Error leyendo Excel de ventas desde storage', e);
+      return [];
+    }
+  }
+  return memVentas;
+}
+
+export function writeVentasToLocalExcel(ventas: VentaExcel[]) {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const rows = ventas.map(v => ({
+      id: v.id ?? '',
+      cliente: v.cliente ?? '',
+      fecha: v.fecha ?? new Date().toISOString(),
+      total: Number(v.total || 0),
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'ventas');
+    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    window.localStorage.setItem(VENTAS_STORAGE_KEY, base64);
+    return;
+  }
+  memVentas = ventas;
+  AsyncStorage.setItem(VENTAS_STORAGE_KEY, JSON.stringify(ventas)).catch((e: any) => console.error('Persist ventas error', e));
+}
+
+export function appendVentaToLocalExcel(venta: VentaExcel): number {
+  const ventas = readVentasFromLocalExcel();
+  let id = venta.id && venta.id > 0 ? venta.id : undefined;
+  if (!id) {
+    const maxId = ventas.reduce((m, v) => (v.id && v.id > m ? v.id : m), 0);
+    id = maxId + 1;
+  } else {
+    // evitar duplicados por id existente
+    if (ventas.some(v => (v.id ?? -1) === id)) {
+      // si ya existe, no duplicar: actualizamos al inicio
+      const updated = [{ ...venta, id }, ...ventas.filter(v => (v.id ?? -1) !== id)];
+      writeVentasToLocalExcel(updated);
+      return id;
+    }
+  }
+  const nuevo = { ...venta, id } as VentaExcel;
+  writeVentasToLocalExcel([nuevo, ...ventas]);
+  return id;
+}
+
+export function readVentaLineasAllFromLocalExcel(): VentaLineaExcel[] {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const base64 = window.localStorage.getItem(VENTA_LINEAS_STORAGE_KEY);
+    if (!base64) return [];
+    try {
+      const wb = XLSX.read(base64, { type: 'base64' });
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      if (!ws) return [];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws);
+      return rows.map(r => ({
+        id: r.id ? Number(r.id) : undefined,
+        ventaId: Number(r.ventaId || 0),
+        productoId: Number(r.productoId || 0),
+        nombre: String(r.nombre || ''),
+        cantidad: Number(r.cantidad || 0),
+        unit: Number(r.unit || 0),
+        total: Number(r.total || 0),
+      })).filter(l => l.ventaId > 0 && l.nombre);
+    } catch (e) {
+      console.error('Error leyendo Excel de venta_lineas desde storage', e);
+      return [];
+    }
+  }
+  return memVentaLineas;
+}
+
+export function writeVentaLineasAllToLocalExcel(items: VentaLineaExcel[]) {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const rows = items.map(i => ({
+      id: i.id ?? '',
+      ventaId: i.ventaId,
+      productoId: i.productoId,
+      nombre: i.nombre,
+      cantidad: i.cantidad,
+      unit: i.unit,
+      total: i.total,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'venta_lineas');
+    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    window.localStorage.setItem(VENTA_LINEAS_STORAGE_KEY, base64);
+    return;
+  }
+  memVentaLineas = items;
+  AsyncStorage.setItem(VENTA_LINEAS_STORAGE_KEY, JSON.stringify(items)).catch((e: any) => console.error('Persist venta_lineas error', e));
+}
+
+export function appendVentaLineaToLocalExcel(item: Omit<VentaLineaExcel, 'id'>): number {
+  const all = readVentaLineasAllFromLocalExcel();
+  const maxId = all.reduce((m, p) => (p.id && p.id > m ? p.id : m), 0);
+  const id = maxId + 1;
+  const nuevo: VentaLineaExcel = { id, ...item };
+  writeVentaLineasAllToLocalExcel([nuevo, ...all]);
+  return id;
+}
+
+export function readVentaLineasByVentaId(ventaId: number): VentaLineaExcel[] {
+  const all = readVentaLineasAllFromLocalExcel();
+  return all.filter(i => i.ventaId === ventaId);
+}
+
+export function deleteVentaFromLocalExcel(ventaId: number): boolean {
+  const ventas = readVentasFromLocalExcel();
+  const filtered = ventas.filter(v => (v.id ?? -1) !== ventaId);
+  if (filtered.length === ventas.length) return false;
+  writeVentasToLocalExcel(filtered);
+  // eliminar líneas asociadas
+  const lineas = readVentaLineasAllFromLocalExcel();
+  const remaining = lineas.filter(l => l.ventaId !== ventaId);
+  writeVentaLineasAllToLocalExcel(remaining);
+  return true;
+}
+
+export function updateVentaInLocalExcel(updated: VentaExcel): boolean {
+  if (!updated.id && updated.id !== 0) return false;
+  const ventas = readVentasFromLocalExcel();
+  const idx = ventas.findIndex(v => (v.id ?? -1) === (updated.id as number));
+  if (idx === -1) return false;
+  ventas[idx] = { ...ventas[idx], ...updated } as VentaExcel;
+  writeVentasToLocalExcel(ventas);
+  return true;
+}
+
+export function replaceVentaLineas(ventaId: number, nuevas: Array<Omit<VentaLineaExcel, 'id'>>): void {
+  const existentes = readVentaLineasAllFromLocalExcel();
+  const sinVenta = existentes.filter(l => l.ventaId !== ventaId);
+  let maxId = sinVenta.reduce((m, r) => (r.id && r.id > m ? r.id : m), 0);
+  const conId = nuevas.map(n => ({ ...n, id: ++maxId } as VentaLineaExcel));
+  writeVentaLineasAllToLocalExcel([ ...conId, ...sinVenta ]);
 }

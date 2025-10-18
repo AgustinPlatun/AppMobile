@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, FlatList, Platform } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 import { styles } from '../styles/IngredientesScreenStyles';
 import { ModalIngrediente } from '../components/ModalIngrediente';
 import { ModalEditarIngrediente } from '../components/ModalEditarIngrediente';
@@ -21,6 +22,21 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
 
   useEffect(() => {
     cargarIngredientes();
+  }, []);
+
+  // Ajustar Navigation Bar para esta pantalla
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      (async () => {
+        try {
+          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setButtonStyleAsync('light');
+          if (NavigationBar.setBehaviorAsync) {
+            await NavigationBar.setBehaviorAsync('overlay-swipe');
+          }
+        } catch {}
+      })();
+    }
   }, []);
 
   useEffect(() => {
@@ -47,24 +63,22 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
         <View style={styles.ingredienteInfo}>
           <Text style={styles.ingredienteNombre}>{item.nombre}</Text>
           <Text style={styles.proveedor}>{item.cantidad} {item.unidad}</Text>
-        </View>
-        <View style={styles.precioContainer}>
           <Text style={styles.precio}>${item.precio}</Text>
         </View>
-      </View>
-      <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 8 }}>
-        <TouchableOpacity
-          style={styles.botonEditar}
-          onPress={() => { setSeleccionado(item); setMostrarEditar(true); }}
-        >
-          <Text style={styles.botonTexto}>Modificar</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.botonEliminar}
-          onPress={() => setConfirmState({ visible: true, ingrediente: item })}
-        >
-          <Text style={styles.botonTexto}>Eliminar</Text>
-        </TouchableOpacity>
+        <View style={styles.accionesContainer}>
+          <TouchableOpacity
+            style={styles.botonEditarChico}
+            onPress={() => { setSeleccionado(item); setMostrarEditar(true); }}
+          >
+            <Text style={styles.botonAccionTextoChico}>Modificar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.botonAccionChico}
+            onPress={() => setConfirmState({ visible: true, ingrediente: item })}
+          >
+            <Text style={styles.botonAccionTextoChico}>Eliminar</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );
@@ -85,6 +99,7 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
         <TextInput
           style={styles.busquedaInput}
           placeholder="Buscar ingredientes..."
+          placeholderTextColor="#6b7280"
           value={busqueda}
           onChangeText={setBusqueda}
         />

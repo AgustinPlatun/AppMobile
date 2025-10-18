@@ -49,6 +49,7 @@ export const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   actionsContainer: {
+    paddingTop: 15,
     paddingHorizontal: 20,
     gap: 16,
   },

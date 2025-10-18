@@ -28,46 +28,60 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#f1f3f5',
   },
-  headerCenter: {
-    alignItems: 'center',
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#adb5bd',
-    marginTop: 2,
-  },
-  botonAccion: {
+  botonAgregar: {
     backgroundColor: '#3b82f6',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
   },
-  botonAccionTexto: {
+  botonAgregarTexto: {
     color: '#fff',
     fontWeight: '600',
   },
-  content: {
-    padding: 20,
-    gap: 12,
+  busquedaContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
-  card: {
+  busquedaInput: {
     backgroundColor: '#1e1e1e',
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+    color: '#f1f3f5',
+  },
+  list: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  clienteCard: {
+    backgroundColor: '#1e1e1e',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
   },
-  label: {
-    fontSize: 14,
-    color: '#adb5bd',
-    marginBottom: 4,
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
   },
-  value: {
+  emptyText: {
     fontSize: 18,
     fontWeight: '600',
     color: '#f1f3f5',
+    marginBottom: 8,
+  },
+  emptySubtext: {
+    fontSize: 14,
+    color: '#adb5bd',
+    textAlign: 'center',
   },
 });

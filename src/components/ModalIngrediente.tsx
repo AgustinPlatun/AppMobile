@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   Modal,
   Platform
 } from 'react-native';
+import * as NavigationBar from 'expo-navigation-bar';
 import { Picker } from '@react-native-picker/picker';
 import { styles } from '../styles/ModalIngredienteStyles';
 import { appendIngredienteToLocalExcel } from '../utils/excel';
@@ -32,6 +33,21 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
   const [cantidad, setCantidad] = useState('');
   const [unidad, setUnidad] = useState<'gramos' | 'mililitros' | 'litros' | 'kilo' | 'unidades'>('unidades');
   const [precio, setPrecio] = useState('');
+
+  // En Android, asegurar barra de navegación transparente e iconos blancos cuando el modal está visible
+  useEffect(() => {
+    if (Platform.OS === 'android' && visible) {
+      (async () => {
+        try {
+          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setButtonStyleAsync('light');
+          if (NavigationBar.setBehaviorAsync) {
+            await NavigationBar.setBehaviorAsync('overlay-swipe');
+          }
+        } catch {}
+      })();
+    }
+  }, [visible]);
 
   const limpiarFormulario = () => {
     setNombre('');
@@ -108,6 +124,7 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
             <TextInput
               style={styles.input}
               placeholder="Ej: Harina de trigo"
+              placeholderTextColor="#6b7280"
               value={nombre}
               onChangeText={setNombre}
             />
@@ -120,6 +137,7 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
               <TextInput
                 style={styles.input}
                 placeholder="0"
+                placeholderTextColor="#6b7280"
                 value={cantidad}
                 onChangeText={setCantidad}
                 keyboardType="numeric"
@@ -171,6 +189,7 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
             <TextInput
               style={styles.input}
               placeholder="0.00"
+              placeholderTextColor="#6b7280"
               value={precio}
               onChangeText={setPrecio}
               keyboardType="numeric"
