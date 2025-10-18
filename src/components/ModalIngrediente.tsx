@@ -6,8 +6,10 @@ import {
   TextInput,
   ScrollView,
   Alert,
-  Modal
+  Modal,
+  Platform
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { styles } from '../styles/ModalIngredienteStyles';
 import { appendIngredienteToLocalExcel } from '../utils/excel';
 
@@ -125,8 +127,8 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
             </View>
             <View style={{ flex: 1 }}>
               <Text style={styles.etiqueta}>Unidad *</Text>
-              {/* Desplegable simple con RN Picker nativo no web; en web usamos un select */}
-              {typeof document !== 'undefined' ? (
+              {/* Web: select nativo del navegador. Mobile: Picker nativo. */}
+              {Platform.OS === 'web' ? (
                 <select
                   value={unidad}
                   onChange={(e) => setUnidad(e.target.value as any)}
@@ -140,16 +142,26 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
                 >
                   <option value="gramos">gramos</option>
                   <option value="mililitros">mililitros</option>
-                  <option value="litros">litros</option>
-                  <option value="kilo">kilo</option>
                   <option value="unidades">unidades</option>
                 </select>
               ) : (
-                <TextInput
-                  style={styles.input}
-                  value={unidad}
-                  editable={false}
-                />
+                <View style={{
+                  backgroundColor: '#1e1e1e',
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#2a2a2a',
+                }}>
+                  <Picker
+                    selectedValue={unidad}
+                    onValueChange={(val: string) => setUnidad(val as any)}
+                    dropdownIconColor="#adb5bd"
+                    style={{ color: '#f1f3f5' }}
+                  >
+                    <Picker.Item label="gramos" value="gramos" />
+                    <Picker.Item label="mililitros" value="mililitros" />
+                    <Picker.Item label="unidades" value="unidades" />
+                  </Picker>
+                </View>
               )}
             </View>
           </View>

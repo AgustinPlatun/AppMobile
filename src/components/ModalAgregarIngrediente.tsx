@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, TextInput, ScrollView, Alert, Modal, Platform } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { readIngredientesFromLocalExcel } from '../utils/excel';
 import { styles as modalStyles } from '../styles/ModalIngredienteStyles';
 
@@ -28,16 +29,10 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
   }, [visible]);
 
   const validar = () => {
-    if (typeof document !== 'undefined') {
-      if (!ingredienteId) {
-        Alert.alert('Error', 'Seleccioná un ingrediente');
-        return false;
-      }
-    } else {
-      if (!nombreLibre.trim()) {
-        Alert.alert('Error', 'Ingresá el nombre del ingrediente');
-        return false;
-      }
+    // En web y en mobile usamos un selector (select o Picker), así que validamos ingredienteId
+    if (!ingredienteId) {
+      Alert.alert('Error', 'Seleccioná un ingrediente');
+      return false;
     }
     if (!cantidadUsada.trim() || isNaN(Number(cantidadUsada)) || Number(cantidadUsada) <= 0) {
       Alert.alert('Error', 'Ingresá una cantidad válida (> 0)');
@@ -48,18 +43,13 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
 
   const guardar = () => {
     if (!validar()) return;
-    if (typeof document !== 'undefined') {
-      const idNum = Number(ingredienteId);
-      const op = opciones.find(o => o.id === idNum);
-      if (!op) {
-        Alert.alert('Error', 'Ingrediente no encontrado');
-        return;
-      }
-      onGuardar({ ingredienteId: op.id, nombre: op.nombre, unidad: op.unidad, cantidadUsada: Number(cantidadUsada) });
-    } else {
-      // Fallback sin select nativo (no-web): usar nombreLibre y unidad por defecto "unidades"
-      onGuardar({ ingredienteId: -1, nombre: nombreLibre.trim(), unidad: 'unidades', cantidadUsada: Number(cantidadUsada) });
+    const idNum = Number(ingredienteId);
+    const op = opciones.find(o => o.id === idNum);
+    if (!op) {
+      Alert.alert('Error', 'Ingrediente no encontrado');
+      return;
     }
+    onGuardar({ ingredienteId: op.id, nombre: op.nombre, unidad: op.unidad, cantidadUsada: Number(cantidadUsada) });
     Alert.alert('Éxito', 'Ingrediente agregado');
     setIngredienteId('');
     setCantidadUsada('');
@@ -90,7 +80,7 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
         <ScrollView style={modalStyles.formulario} showsVerticalScrollIndicator={false}>
           <View style={modalStyles.campo}>
             <Text style={modalStyles.etiqueta}>Ingrediente *</Text>
-            {typeof document !== 'undefined' ? (
+            {Platform.OS === 'web' ? (
               <select
                 value={ingredienteId}
                 onChange={(e) => setIngredienteId(e.target.value)}
@@ -108,12 +98,24 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
                 ))}
               </select>
             ) : (
-              <TextInput
-                style={modalStyles.input}
-                placeholder="Escribe el nombre del ingrediente"
-                value={nombreLibre}
-                onChangeText={setNombreLibre}
-              />
+              <View style={{
+                backgroundColor: '#1e1e1e',
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: '#2a2a2a',
+              }}>
+                <Picker
+                  selectedValue={ingredienteId}
+                  onValueChange={(val: string) => setIngredienteId(val)}
+                  dropdownIconColor="#adb5bd"
+                  style={{ color: '#f1f3f5' }}
+                >
+                  <Picker.Item label="Seleccionar..." value="" />
+                  {opciones.map(op => (
+                    <Picker.Item key={op.id} label={`${op.nombre} (${op.unidad})`} value={String(op.id)} />
+                  ))}
+                </Picker>
+              </View>
             )}
           </View>
 

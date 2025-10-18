@@ -92,8 +92,6 @@ export const ModalEditarIngrediente: React.FC<ModalEditarIngredienteProps> = ({ 
                 >
                   <option value="gramos">gramos</option>
                   <option value="mililitros">mililitros</option>
-                  <option value="litros">litros</option>
-                  <option value="kilo">kilo</option>
                   <option value="unidades">unidades</option>
                 </select>
               ) : (

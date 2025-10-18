@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity, FlatList, TextInput } from 'react-native'
 import { Producto } from '../types';
 import { styles } from '../styles/ProductoDetalleScreenStyles';
 import { ModalAgregarIngrediente } from '../components/ModalAgregarIngrediente';
-import { readIngredientesFromLocalExcel, appendProductoIngredienteToLocalExcel, readProductoIngredientesByProductoId, readProductosFromLocalExcel, updateProductoInLocalExcel } from '../utils/excel';
+import { readIngredientesFromLocalExcel, appendProductoIngredienteToLocalExcel, readProductoIngredientesByProductoId, readProductosFromLocalExcel, updateProductoInLocalExcel, writeProductoIngredientesAllToLocalExcel, readProductoIngredientesAllFromLocalExcel } from '../utils/excel';
+import { ConfirmModal } from '../components/ConfirmModal';
 
 interface ProductoDetalleScreenProps {
   producto: Producto;
@@ -13,6 +14,7 @@ interface ProductoDetalleScreenProps {
 export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ producto, navigation }) => {
   const [mostrarModal, setMostrarModal] = React.useState(false);
   const [ingredientesUsados, setIngredientesUsados] = React.useState<Array<{ id: string; ingredienteId: number; nombre: string; unidad: string; cantidad: number; costo: number }>>([]);
+  const [confirm, setConfirm] = React.useState<{ visible: boolean; id?: string; nombre?: string }>({ visible: false });
   const totalCosto = React.useMemo(() => {
     return ingredientesUsados.reduce((acc, it) => acc + (Number.isFinite(it.costo) ? it.costo : 0), 0);
   }, [ingredientesUsados]);
@@ -103,6 +105,16 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
     setIngredientesUsados(prev => [nuevo, ...prev]);
   };
 
+  const eliminarIngredienteUsado = (idRow: string) => {
+    // Remover de UI
+    setIngredientesUsados(prev => prev.filter(i => i.id !== idRow));
+    // Remover de persistencia buscando por id numérico si existe
+    if (!producto.id) return;
+    const all = readProductoIngredientesAllFromLocalExcel();
+    const remaining = all.filter(r => String(r.id ?? `${r.ingredienteId}-${r.cantidadUsada}`) !== idRow);
+    writeProductoIngredientesAllToLocalExcel(remaining);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -118,7 +130,7 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
 
       <View style={styles.content}>
         <TouchableOpacity
-          style={{ backgroundColor: '#28a745', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginBottom: 12 }}
+          style={{ backgroundColor: '#28a745', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginBottom: 12, marginTop: 12 }}
           onPress={() => setMostrarModal(true)}
         >
           <Text style={{ color: '#fff', fontWeight: '600' }}>+ Agregar ingrediente</Text>
@@ -131,12 +143,17 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
               data={ingredientesUsados}
               keyExtractor={(i) => i.id}
               renderItem={({ item }) => (
-                <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#e9ecef', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#1f1f1f', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                   <View>
                     <Text style={styles.value}>{item.nombre}</Text>
                     <Text style={styles.label}>{item.cantidad} {item.unidad}</Text>
                   </View>
-                  <Text style={styles.value}>${Math.round(item.costo)}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                    <Text style={styles.value}>${Math.round(item.costo)}</Text>
+                    <TouchableOpacity onPress={() => setConfirm({ visible: true, id: item.id, nombre: item.nombre })} style={{ backgroundColor: '#dc3545', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}>
+                      <Text style={{ color: '#fff', fontWeight: '600' }}>Eliminar</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             />
@@ -213,6 +230,17 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
         visible={mostrarModal}
         onCerrar={() => setMostrarModal(false)}
         onGuardar={onGuardarIngrediente}
+      />
+
+      <ConfirmModal
+        visible={confirm.visible}
+        title="Eliminar ingrediente"
+        message={`¿Seguro que querés eliminar "${confirm.nombre ?? ''}" de este producto?`}
+        onCancel={() => setConfirm({ visible: false })}
+        onConfirm={() => {
+          if (confirm.id) eliminarIngredienteUsado(confirm.id);
+          setConfirm({ visible: false });
+        }}
       />
     </View>
   );
