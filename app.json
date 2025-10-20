@@ -24,15 +24,15 @@
         "translucent": false
       },
       "navigationBar": {
-        "backgroundColor": "transparent",
+        "backgroundColor": "#121212",
         "barStyle": "light",
         "visible": true
       },
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#F4EAE6"
       },
-  "edgeToEdgeEnabled": true,
+  "edgeToEdgeEnabled": false,
       "predictiveBackGestureEnabled": false
     },
     "web": {

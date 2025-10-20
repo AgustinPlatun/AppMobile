@@ -15,10 +15,10 @@ export const VentaDetalleScreen: React.FC<VentaDetalleScreenProps> = ({ venta, n
   useEffect(() => {
     (async () => {
       try {
-        await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setBackgroundColorAsync('#121212');
         await NavigationBar.setButtonStyleAsync('light');
         if ((NavigationBar as any).setBehaviorAsync) {
-          await (NavigationBar as any).setBehaviorAsync('overlay-swipe');
+            await (NavigationBar as any).setBehaviorAsync('inset-swipe');
         }
       } catch {}
     })();

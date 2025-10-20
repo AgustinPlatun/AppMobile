@@ -8,7 +8,7 @@ import { readClientesFromLocalExcel, readProductosFromLocalExcel, appendVentaLin
 interface ModalVentaProps {
   visible: boolean;
   onCerrar: () => void;
-  onGuardado: (venta: { id: number; cliente: string; fecha: string; total: number; lineas?: Array<{ productoId: number; nombre: string; cantidad: number; unit: number; total: number }> }) => void;
+  onGuardado: (venta: { id: number; cliente: string; fecha: string; total: number; estado?: 'pagado' | 'señado' | 'no pagado'; lineas?: Array<{ productoId: number; nombre: string; cantidad: number; unit: number; total: number }> }) => void;
 }
 
 export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGuardado }) => {
@@ -19,15 +19,16 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
   const [cantidadTemp, setCantidadTemp] = useState('');
   const [lineas, setLineas] = useState<Array<{ productoId: number; nombre: string; cantidad: number; unit: number; total: number }>>([]);
   const [envio, setEnvio] = useState('');
+  const [estado, setEstado] = useState<'pagado' | 'señado' | 'no pagado'>('pagado');
 
   useEffect(() => {
     if (Platform.OS === 'android' && visible) {
       (async () => {
         try {
-          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setBackgroundColorAsync('#121212');
           await NavigationBar.setButtonStyleAsync('light');
           if ((NavigationBar as any).setBehaviorAsync) {
-            await (NavigationBar as any).setBehaviorAsync('overlay-swipe');
+            await (NavigationBar as any).setBehaviorAsync('inset-swipe');
           }
         } catch {}
       })();
@@ -54,6 +55,7 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
     setCantidadTemp('');
     setLineas([]);
     setEnvio('');
+    setEstado('pagado');
     onCerrar();
   };
 
@@ -69,7 +71,7 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
           return c ? `${c.nombre}${c.apellido ? ' ' + c.apellido : ''}` : '';
         })()
       : '';
-  const venta = { id: Date.now(), cliente: clienteNombre, fecha: new Date().toISOString(), total: monto, lineas: [...lineas] };
+  const venta = { id: Date.now(), cliente: clienteNombre, fecha: new Date().toISOString(), total: monto, estado, lineas: [...lineas] };
     // Guardar líneas con ventaId provisional; el id definitivo lo establecerá la pantalla al persistir la venta principal
     try {
       // No escribimos aún en storage global aquí (para evitar id desfasados), solo devolvemos las líneas
@@ -93,6 +95,38 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
         </View>
 
         <View style={productoModalStyles.formulario}>
+          <Text style={productoModalStyles.etiqueta}>Estado de la venta</Text>
+          {Platform.OS === 'web' ? (
+            <select
+              value={estado}
+              onChange={(e) => setEstado(e.target.value as any)}
+              style={{
+                height: 48,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: '#e9ecef',
+                paddingLeft: 12,
+                marginBottom: 16,
+              } as any}
+            >
+              <option value="pagado">Pagado</option>
+              <option value="señado">Señado</option>
+              <option value="no pagado">No pagado</option>
+            </select>
+          ) : (
+            <View style={{ backgroundColor: '#1e1e1e', borderRadius: 12, borderWidth: 1, borderColor: '#2a2a2a', marginBottom: 16 }}>
+              <Picker
+                selectedValue={estado}
+                onValueChange={(val: any) => setEstado(val)}
+                dropdownIconColor="#adb5bd"
+                style={{ color: '#f1f3f5' }}
+              >
+                <Picker.Item label="Pagado" value="pagado" />
+                <Picker.Item label="Señado" value="señado" />
+                <Picker.Item label="No pagado" value="no pagado" />
+              </Picker>
+            </View>
+          )}
           <Text style={productoModalStyles.etiqueta}>Cliente (opcional)</Text>
           {Platform.OS === 'web' ? (
             <select

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Platform } from 'react-native';
 import * as NavigationBar from 'expo-navigation-bar';
 import { styles as productoModalStyles } from '../styles/ModalProductoStyles';
-import { appendClienteToLocalExcel } from '../utils/excel';
+import { appendRecetaToLocalExcel } from '../utils/excel';
 
 const localStyles = StyleSheet.create({
   errorText: {
@@ -11,36 +11,31 @@ const localStyles = StyleSheet.create({
   },
 });
 
-interface ModalClienteProps {
+interface ModalRecetaProps {
   visible: boolean;
   onCerrar: () => void;
-  onGuardado: (cliente: { id: number; nombre: string; apellido: string; telefono?: string }) => void;
+  onGuardado: (receta: { id: number; nombre: string }) => void;
 }
 
-export const ModalCliente: React.FC<ModalClienteProps> = ({ visible, onCerrar, onGuardado }) => {
+export const ModalReceta: React.FC<ModalRecetaProps> = ({ visible, onCerrar, onGuardado }) => {
   const [nombre, setNombre] = useState('');
-  const [apellido, setApellido] = useState('');
-  const [telefono, setTelefono] = useState('');
   const [error, setError] = useState('');
 
   useEffect(() => {
     if (!visible) {
       setNombre('');
-      setApellido('');
-      setTelefono('');
       setError('');
     }
   }, [visible]);
 
-  // En Android, asegurar barra de navegación transparente e iconos blancos cuando el modal está visible
   useEffect(() => {
     if (Platform.OS === 'android' && visible) {
       (async () => {
         try {
           await NavigationBar.setBackgroundColorAsync('#121212');
           await NavigationBar.setButtonStyleAsync('light');
-          if (NavigationBar.setBehaviorAsync) {
-            await NavigationBar.setBehaviorAsync('inset-swipe');
+          if ((NavigationBar as any).setBehaviorAsync) {
+            await (NavigationBar as any).setBehaviorAsync('inset-swipe');
           }
         } catch {}
       })();
@@ -48,18 +43,16 @@ export const ModalCliente: React.FC<ModalClienteProps> = ({ visible, onCerrar, o
   }, [visible]);
 
   const guardar = () => {
-    if (!nombre.trim() || !apellido.trim()) {
-      setError('Nombre y apellido son obligatorios');
+    if (!nombre.trim()) {
+      setError('El nombre de la receta es obligatorio');
       return;
     }
-    const id = appendClienteToLocalExcel({
+    const id = appendRecetaToLocalExcel({
       nombre: nombre.trim(),
-      apellido: apellido.trim(),
-      telefono: telefono.trim() ? telefono.trim() : undefined,
       fechaCreacion: new Date().toISOString(),
       activo: true,
     });
-    onGuardado({ id, nombre: nombre.trim(), apellido: apellido.trim(), telefono: telefono.trim() || undefined });
+    onGuardado({ id, nombre: nombre.trim() });
     onCerrar();
   };
 
@@ -70,7 +63,7 @@ export const ModalCliente: React.FC<ModalClienteProps> = ({ visible, onCerrar, o
           <TouchableOpacity style={productoModalStyles.botonCerrar} onPress={onCerrar}>
             <Text style={productoModalStyles.botonCerrarTexto}>Cancelar</Text>
           </TouchableOpacity>
-          <Text style={productoModalStyles.headerTitle}>Nuevo Cliente</Text>
+          <Text style={productoModalStyles.headerTitle}>Nueva Receta</Text>
           <TouchableOpacity style={productoModalStyles.botonGuardar} onPress={guardar}>
             <Text style={productoModalStyles.botonGuardarTexto}>Guardar</Text>
           </TouchableOpacity>
@@ -79,32 +72,13 @@ export const ModalCliente: React.FC<ModalClienteProps> = ({ visible, onCerrar, o
         <View style={productoModalStyles.formulario}>
           {!!error && <Text style={localStyles.errorText}>{error}</Text>}
 
-          <Text style={productoModalStyles.etiqueta}>Nombre</Text>
+          <Text style={productoModalStyles.etiqueta}>Nombre de receta</Text>
           <TextInput
             style={productoModalStyles.input}
             value={nombre}
             onChangeText={setNombre}
-            placeholder="Nombre"
+            placeholder="Ej: Tarta de manzana"
             placeholderTextColor="#6b7280"
-          />
-
-          <Text style={productoModalStyles.etiqueta}>Apellido</Text>
-          <TextInput
-            style={productoModalStyles.input}
-            value={apellido}
-            onChangeText={setApellido}
-            placeholder="Apellido"
-            placeholderTextColor="#6b7280"
-          />
-
-          <Text style={productoModalStyles.etiqueta}>Teléfono (opcional)</Text>
-          <TextInput
-            style={productoModalStyles.input}
-            value={telefono}
-            onChangeText={setTelefono}
-            placeholder="Ej: +54 9 11 1234-5678"
-            placeholderTextColor="#6b7280"
-            keyboardType="phone-pad"
           />
 
           <View style={{ height: 24 }} />

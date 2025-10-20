@@ -14,12 +14,15 @@ export default function App() {
         await initDatabase();
         await initExcelStorage();
         if (Platform.OS === 'android') {
-          // Barra transparente y botones blancos (light)
+          // Barra con color de fondo del home y botones blancos (light)
           try {
-            await NavigationBar.setBackgroundColorAsync('transparent');
+            await NavigationBar.setBackgroundColorAsync('#121212');
             await NavigationBar.setButtonStyleAsync('light');
             if (NavigationBar.setBehaviorAsync) {
-              await NavigationBar.setBehaviorAsync('overlay-swipe');
+              await NavigationBar.setBehaviorAsync('inset-swipe');
+            }
+            if ((NavigationBar as any).setPositionAsync) {
+              await (NavigationBar as any).setPositionAsync('relative');
             }
           } catch {}
         }
@@ -37,10 +40,13 @@ export default function App() {
     const sub = AppState.addEventListener('change', async (state) => {
       if (state === 'active' && Platform.OS === 'android') {
         try {
-          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setBackgroundColorAsync('#121212');
           await NavigationBar.setButtonStyleAsync('light');
           if (NavigationBar.setBehaviorAsync) {
-            await NavigationBar.setBehaviorAsync('overlay-swipe');
+            await NavigationBar.setBehaviorAsync('inset-swipe');
+          }
+          if ((NavigationBar as any).setPositionAsync) {
+            await (NavigationBar as any).setPositionAsync('relative');
           }
         } catch {}
       }

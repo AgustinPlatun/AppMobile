@@ -98,6 +98,29 @@ const styles = StyleSheet.create({
     gap: 8,
     alignItems: 'center',
   },
+  ventaEstadoBadge: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  ventaEstadoTexto: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#1e1e1e',
+    textTransform: 'capitalize',
+  },
+  ventaEstadoTextoClaro: {
+    color: '#ffffff',
+  },
+  estadoAmarillo: {
+    backgroundColor: '#facc15',
+  },
+  estadoRojo: {
+    backgroundColor: '#dc3545',
+  },
+  estadoVerde: {
+    backgroundColor: '#28a745',
+  },
   ventaAcciones: {
     marginTop: 12,
     flexDirection: 'row',

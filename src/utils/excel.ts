@@ -282,13 +282,15 @@ export function writeProductoIngredientesAllToLocalExcel(items: ProductoIngredie
 export async function initExcelStorage() {
   if (Platform.OS === 'web') return;
   try {
-    const [p, i, r, c, v, vl] = await Promise.all([
+    const [p, i, r, c, v, vl, rec, rbl] = await Promise.all([
       AsyncStorage.getItem(STORAGE_KEY),
       AsyncStorage.getItem(ING_STORAGE_KEY),
       AsyncStorage.getItem(PROD_ING_STORAGE_KEY),
       AsyncStorage.getItem(CLIENTES_STORAGE_KEY),
       AsyncStorage.getItem(VENTAS_STORAGE_KEY),
       AsyncStorage.getItem(VENTA_LINEAS_STORAGE_KEY),
+      AsyncStorage.getItem(RECETAS_STORAGE_KEY),
+      AsyncStorage.getItem(RECETA_BLOQUES_STORAGE_KEY),
     ]);
     memProductos = p ? JSON.parse(p) : [];
     memIngredientes = i ? JSON.parse(i) : [];
@@ -296,6 +298,8 @@ export async function initExcelStorage() {
     memClientes = c ? JSON.parse(c) : [];
     memVentas = v ? JSON.parse(v) : [];
     memVentaLineas = vl ? JSON.parse(vl) : [];
+    memRecetas = rec ? JSON.parse(rec) : [];
+  memRecetaBloques = rbl ? JSON.parse(rbl) : [];
   } catch (e) {
     console.error('initExcelStorage error', e);
     memProductos = [];
@@ -304,6 +308,8 @@ export async function initExcelStorage() {
     memClientes = [];
     memVentas = [];
     memVentaLineas = [];
+    memRecetas = [];
+    memRecetaBloques = [];
   }
 }
 
@@ -443,6 +449,7 @@ export type VentaExcel = {
   cliente: string; // puede ser vacío
   fecha: string; // ISO
   total: number;
+  estado?: 'pagado' | 'señado' | 'no pagado';
 };
 
 export type VentaLineaExcel = {
@@ -476,6 +483,12 @@ export function readVentasFromLocalExcel(): VentaExcel[] {
         cliente: String(r.cliente || ''),
         fecha: r.fecha ? String(r.fecha) : new Date().toISOString(),
         total: Number(r.total || 0),
+        estado: ((): 'pagado' | 'señado' | 'no pagado' => {
+          const e = String(r.estado || '').toLowerCase();
+          if (e === 'señado') return 'señado';
+          if (e === 'no pagado' || e === 'nopagado' || e === 'impago') return 'no pagado';
+          return 'pagado';
+        })(),
       })).filter(v => Number.isFinite(v.total));
     } catch (e) {
       console.error('Error leyendo Excel de ventas desde storage', e);
@@ -493,6 +506,7 @@ export function writeVentasToLocalExcel(ventas: VentaExcel[]) {
       cliente: v.cliente ?? '',
       fecha: v.fecha ?? new Date().toISOString(),
       total: Number(v.total || 0),
+      estado: v.estado ?? 'pagado',
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -520,7 +534,7 @@ export function appendVentaToLocalExcel(venta: VentaExcel): number {
       return id;
     }
   }
-  const nuevo = { ...venta, id } as VentaExcel;
+  const nuevo = { ...venta, id, estado: venta.estado ?? 'pagado' } as VentaExcel;
   writeVentasToLocalExcel([nuevo, ...ventas]);
   return id;
 }
@@ -618,4 +632,179 @@ export function replaceVentaLineas(ventaId: number, nuevas: Array<Omit<VentaLine
   let maxId = sinVenta.reduce((m, r) => (r.id && r.id > m ? r.id : m), 0);
   const conId = nuevas.map(n => ({ ...n, id: ++maxId } as VentaLineaExcel));
   writeVentaLineasAllToLocalExcel([ ...conId, ...sinVenta ]);
+}
+
+// ====== RECETAS ======
+export type RecetaExcel = {
+  id?: number;
+  nombre: string;
+  fechaCreacion?: string;
+  activo?: boolean;
+};
+
+const RECETAS_STORAGE_KEY = 'recetas_excel_v1';
+let memRecetas: RecetaExcel[] = [];
+
+export function readRecetasFromLocalExcel(): RecetaExcel[] {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const base64 = window.localStorage.getItem(RECETAS_STORAGE_KEY);
+    if (!base64) return [];
+    try {
+      const wb = XLSX.read(base64, { type: 'base64' });
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      if (!ws) return [];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws);
+      return rows.map(r => ({
+        id: r.id ? Number(r.id) : undefined,
+        nombre: String(r.nombre || '').trim(),
+        fechaCreacion: r.fechaCreacion ? String(r.fechaCreacion) : new Date().toISOString(),
+        activo: r.activo === undefined ? true : Boolean(r.activo),
+      })).filter(r => r.nombre);
+    } catch (e) {
+      console.error('Error leyendo Excel de recetas desde storage', e);
+      return [];
+    }
+  }
+  return memRecetas;
+}
+
+export function writeRecetasToLocalExcel(recetas: RecetaExcel[]) {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const rows = recetas.map(r => ({
+      id: r.id ?? '',
+      nombre: r.nombre,
+      fechaCreacion: r.fechaCreacion ?? new Date().toISOString(),
+      activo: r.activo ?? true,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'recetas');
+    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    window.localStorage.setItem(RECETAS_STORAGE_KEY, base64);
+    return;
+  }
+  memRecetas = recetas;
+  AsyncStorage.setItem(RECETAS_STORAGE_KEY, JSON.stringify(recetas)).catch((e: any) => console.error('Persist recetas error', e));
+}
+
+export function appendRecetaToLocalExcel(receta: Omit<RecetaExcel, 'id'>): number {
+  const recetas = readRecetasFromLocalExcel();
+  const maxId = recetas.reduce((m, p) => (p.id && p.id > m ? p.id : m), 0);
+  const id = maxId + 1;
+  const nuevo = { id, ...receta } as RecetaExcel;
+  const updated = [nuevo, ...recetas];
+  writeRecetasToLocalExcel(updated);
+  return id;
+}
+
+export function deleteRecetaFromLocalExcel(recetaId: number): boolean {
+  const recetas = readRecetasFromLocalExcel();
+  const filtered = recetas.filter(r => (r.id ?? -1) !== recetaId);
+  if (filtered.length === recetas.length) return false;
+  writeRecetasToLocalExcel(filtered);
+  // Cascada: eliminar bloques de esa receta
+  const bloques = readRecetaBloquesAllFromLocalExcel();
+  const remaining = bloques.filter(b => b.recetaId !== recetaId);
+  writeRecetaBloquesAllToLocalExcel(remaining);
+  return true;
+}
+
+// ====== RECETA BLOQUES (notas de receta) ======
+export type RecetaBloqueExcel = {
+  id?: number;
+  recetaId: number;
+  titulo: string;
+  descripcion: string;
+  orden?: number; // opcional para ordenar
+  fechaCreacion?: string;
+};
+
+const RECETA_BLOQUES_STORAGE_KEY = 'receta_bloques_excel_v1';
+let memRecetaBloques: RecetaBloqueExcel[] = [];
+
+export function readRecetaBloquesAllFromLocalExcel(): RecetaBloqueExcel[] {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return [];
+    const base64 = window.localStorage.getItem(RECETA_BLOQUES_STORAGE_KEY);
+    if (!base64) return [];
+    try {
+      const wb = XLSX.read(base64, { type: 'base64' });
+      const sheetName = wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      if (!ws) return [];
+      const rows: any[] = XLSX.utils.sheet_to_json(ws);
+      return rows.map(r => ({
+        id: r.id ? Number(r.id) : undefined,
+        recetaId: Number(r.recetaId || 0),
+        titulo: String(r.titulo || '').trim(),
+        descripcion: String(r.descripcion || '').trim(),
+        orden: r.orden !== undefined && r.orden !== '' ? Number(r.orden) : undefined,
+        fechaCreacion: r.fechaCreacion ? String(r.fechaCreacion) : new Date().toISOString(),
+      })).filter(b => b.recetaId > 0 && b.titulo && b.descripcion);
+    } catch (e) {
+      console.error('Error leyendo Excel de receta_bloques', e);
+      return [];
+    }
+  }
+  return memRecetaBloques;
+}
+
+export function writeRecetaBloquesAllToLocalExcel(items: RecetaBloqueExcel[]) {
+  if (Platform.OS === 'web') {
+    if (typeof window === 'undefined' || !window.localStorage) return;
+    const rows = items.map(i => ({
+      id: i.id ?? '',
+      recetaId: i.recetaId,
+      titulo: i.titulo,
+      descripcion: i.descripcion,
+      orden: i.orden ?? '',
+      fechaCreacion: i.fechaCreacion ?? new Date().toISOString(),
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'receta_bloques');
+    const base64 = XLSX.write(wb, { type: 'base64', bookType: 'xlsx' });
+    window.localStorage.setItem(RECETA_BLOQUES_STORAGE_KEY, base64);
+    return;
+  }
+  memRecetaBloques = items;
+  AsyncStorage.setItem(RECETA_BLOQUES_STORAGE_KEY, JSON.stringify(items)).catch((e: any) => console.error('Persist receta_bloques error', e));
+}
+
+export function appendRecetaBloqueToLocalExcel(item: Omit<RecetaBloqueExcel, 'id'>): number {
+  const all = readRecetaBloquesAllFromLocalExcel();
+  const maxId = all.reduce((m, p) => (p.id && p.id > m ? p.id : m), 0);
+  const id = maxId + 1;
+  const nuevo: RecetaBloqueExcel = { id, ...item };
+  writeRecetaBloquesAllToLocalExcel([...all, nuevo]);
+  return id;
+}
+
+export function readRecetaBloquesByRecetaId(recetaId: number): RecetaBloqueExcel[] {
+  const all = readRecetaBloquesAllFromLocalExcel();
+  return all.filter(b => b.recetaId === recetaId).sort((a, b) => {
+    const oa = a.orden ?? a.id ?? 0;
+    const ob = b.orden ?? b.id ?? 0;
+    return oa - ob; // más chico primero
+  });
+}
+
+export function updateRecetaBloqueInLocalExcel(updated: RecetaBloqueExcel): boolean {
+  const all = readRecetaBloquesAllFromLocalExcel();
+  const idx = all.findIndex(b => (b.id ?? -1) === (updated.id ?? -2));
+  if (idx === -1) return false;
+  all[idx] = { ...all[idx], ...updated } as RecetaBloqueExcel;
+  writeRecetaBloquesAllToLocalExcel(all);
+  return true;
+}
+
+export function deleteRecetaBloqueFromLocalExcel(bloqueId: number): boolean {
+  const all = readRecetaBloquesAllFromLocalExcel();
+  const filtered = all.filter(b => (b.id ?? -1) !== bloqueId);
+  if (filtered.length === all.length) return false;
+  writeRecetaBloquesAllToLocalExcel(filtered);
+  return true;
 }

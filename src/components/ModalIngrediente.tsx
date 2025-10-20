@@ -39,10 +39,10 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
     if (Platform.OS === 'android' && visible) {
       (async () => {
         try {
-          await NavigationBar.setBackgroundColorAsync('transparent');
+          await NavigationBar.setBackgroundColorAsync('#121212');
           await NavigationBar.setButtonStyleAsync('light');
           if (NavigationBar.setBehaviorAsync) {
-            await NavigationBar.setBehaviorAsync('overlay-swipe');
+            await NavigationBar.setBehaviorAsync('inset-swipe');
           }
         } catch {}
       })();

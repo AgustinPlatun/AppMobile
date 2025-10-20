@@ -18,17 +18,18 @@ interface HomeScreenProps {
 }
 
 export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const [pantallaActual, setPantallaActual] = useState<'home' | 'productos' | 'ingredientes' | 'productoDetalle' | 'clientes' | 'ventas' | 'ventaDetalle'>('home');
+  const [pantallaActual, setPantallaActual] = useState<'home' | 'productos' | 'ingredientes' | 'productoDetalle' | 'clientes' | 'ventas' | 'ventaDetalle' | 'recetas' | 'recetaDetalle'>('home');
   const [productoSeleccionado, setProductoSeleccionado] = useState<Producto | null>(null);
   const [ventaSeleccionada, setVentaSeleccionada] = useState<any | null>(null);
+  const [recetaSeleccionada, setRecetaSeleccionada] = useState<{ id: number; nombre: string } | null>(null);
 
   useEffect(() => {
     (async () => {
       try {
-        await NavigationBar.setBackgroundColorAsync('transparent');
+        await NavigationBar.setBackgroundColorAsync('#121212');
         await NavigationBar.setButtonStyleAsync('light');
         if (NavigationBar.setBehaviorAsync) {
-          await NavigationBar.setBehaviorAsync('overlay-swipe');
+          await NavigationBar.setBehaviorAsync('inset-swipe');
         }
       } catch {}
     })();
@@ -48,6 +49,10 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   const navegarAVentas = () => {
     setPantallaActual('ventas');
+  };
+
+  const navegarARecetas = () => {
+    setPantallaActual('recetas');
   };
 
   const volverAlInicio = () => {
@@ -76,6 +81,19 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   if (pantallaActual === 'clientes') {
     return <ClientesScreen navigation={{ goBack: volverAlInicio }} />;
+  }
+
+  if (pantallaActual === 'recetas') {
+    const { RecetasScreen } = require('./RecetasScreen');
+    return (
+      <RecetasScreen
+        navigation={{ goBack: volverAlInicio }}
+        onVerDetalle={(receta: { id: number; nombre: string }) => {
+          setRecetaSeleccionada(receta);
+          setPantallaActual('recetaDetalle');
+        }}
+      />
+    );
   }
 
   if (pantallaActual === 'ventas') {
@@ -110,8 +128,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     );
   }
 
+  if (pantallaActual === 'recetaDetalle' && recetaSeleccionada) {
+    const { RecetaDetalleScreen } = require('./RecetaDetalleScreen');
+    return (
+      <RecetaDetalleScreen
+        receta={recetaSeleccionada}
+        navigation={{ goBack: () => setPantallaActual('recetas') }}
+      />
+    );
+  }
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Rico y saludable</Text>
         <Text style={styles.headerSubtitle}>Inicio</Text>
@@ -157,6 +185,15 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <Text style={styles.actionIcon}>🧾</Text>
           <Text style={styles.actionTitle}>Registrar venta</Text>
           <Text style={styles.actionSubtitle}>Crear una nueva venta</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, styles.recetasButton]}
+          onPress={navegarARecetas}
+        >
+          <Text style={styles.actionIcon}>📖</Text>
+          <Text style={styles.actionTitle}>Recetas</Text>
+          <Text style={styles.actionSubtitle}>Gestión de recetas</Text>
         </TouchableOpacity>
       </View>
 

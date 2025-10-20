@@ -63,6 +63,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
+  recetasButton: {},
   actionIcon: {
     fontSize: 32,
     marginBottom: 8,
