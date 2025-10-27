@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { ProductoDetalleScreen } from './ProductoDetalleScreen';
 import { IngredientesScreen } from './IngredientesScreen';
 import { styles } from '../styles/HomeScreenStyles';
 import { ClientesScreen } from './ClientesScreen';
+import HomeActionButton from '../components/HomeActionButton';
 
 interface HomeScreenProps {
   navigation?: any; // Temporal, luego agregaremos navegación tipada
@@ -35,108 +36,88 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     })();
   }, []);
 
-  const navegarAProductos = () => {
-    setPantallaActual('productos');
-  };
-
-  const navegarAIngredientes = () => {
-    setPantallaActual('ingredientes');
-  };
-
-  const navegarAClientes = () => {
-    setPantallaActual('clientes');
-  };
-
-  const navegarAVentas = () => {
-    setPantallaActual('ventas');
-  };
-
-  const navegarARecetas = () => {
-    setPantallaActual('recetas');
-  };
-
-  const volverAlInicio = () => {
-    setPantallaActual('home');
-    // Funcionalidad de recarga deshabilitada
-  };
-
-  const verDetalleProducto = (producto: Producto) => {
+  const navegarAProductos = useCallback(() => setPantallaActual('productos'), []);
+  const navegarAIngredientes = useCallback(() => setPantallaActual('ingredientes'), []);
+  const navegarAClientes = useCallback(() => setPantallaActual('clientes'), []);
+  const navegarAVentas = useCallback(() => setPantallaActual('ventas'), []);
+  const navegarARecetas = useCallback(() => setPantallaActual('recetas'), []);
+  const volverAlInicio = useCallback(() => setPantallaActual('home'), []);
+  const verDetalleProducto = useCallback((producto: Producto) => {
     setProductoSeleccionado(producto);
     setPantallaActual('productoDetalle');
-  };
+  }, []);
 
   // Renderizar pantalla según el estado
-  if (pantallaActual === 'productos') {
-    return (
-      <ProductosScreen
-        navigation={{ goBack: volverAlInicio }}
-        onVerDetalle={verDetalleProducto}
-      />
-    );
-  }
+  const content = useMemo(() => {
+    switch (pantallaActual) {
+      case 'productos':
+        return (
+          <ProductosScreen
+            navigation={{ goBack: volverAlInicio }}
+            onVerDetalle={verDetalleProducto}
+          />
+        );
+      case 'ingredientes':
+        return <IngredientesScreen navigation={{ goBack: volverAlInicio }} />;
+      case 'clientes':
+        return <ClientesScreen navigation={{ goBack: volverAlInicio }} />;
+      case 'recetas': {
+        const { RecetasScreen } = require('./RecetasScreen');
+        return (
+          <RecetasScreen
+            navigation={{ goBack: volverAlInicio }}
+            onVerDetalle={(receta: { id: number; nombre: string }) => {
+              setRecetaSeleccionada(receta);
+              setPantallaActual('recetaDetalle');
+            }}
+          />
+        );
+      }
+      case 'ventas': {
+        const { VentasScreen } = require('./VentasScreen');
+        return (
+          <VentasScreen
+            navigation={{ goBack: volverAlInicio }}
+            onVerDetalleVenta={(venta: { id: number; cliente: string; fecha: string; total: number; lineas?: Array<{ nombre: string; cantidad: number; unit: number; total: number }> }) => {
+              setVentaSeleccionada(venta);
+              setPantallaActual('ventaDetalle');
+            }}
+          />
+        );
+      }
+      case 'productoDetalle':
+        return productoSeleccionado ? (
+          <ProductoDetalleScreen
+            producto={productoSeleccionado}
+            navigation={{ goBack: () => setPantallaActual('productos') }}
+          />
+        ) : null;
+      case 'ventaDetalle': {
+        if (!ventaSeleccionada) return null;
+        const { VentaDetalleScreen } = require('./VentaDetalleScreen');
+        return (
+          <VentaDetalleScreen
+            venta={ventaSeleccionada}
+            navigation={{ goBack: () => setPantallaActual('ventas') }}
+          />
+        );
+      }
+      case 'recetaDetalle': {
+        if (!recetaSeleccionada) return null;
+        const { RecetaDetalleScreen } = require('./RecetaDetalleScreen');
+        return (
+          <RecetaDetalleScreen
+            receta={recetaSeleccionada}
+            navigation={{ goBack: () => setPantallaActual('recetas') }}
+          />
+        );
+      }
+      default:
+        return null;
+    }
+  }, [pantallaActual, volverAlInicio, verDetalleProducto, productoSeleccionado, ventaSeleccionada, recetaSeleccionada]);
 
-  if (pantallaActual === 'ingredientes') {
-    return <IngredientesScreen navigation={{ goBack: volverAlInicio }} />;
-  }
-
-  if (pantallaActual === 'clientes') {
-    return <ClientesScreen navigation={{ goBack: volverAlInicio }} />;
-  }
-
-  if (pantallaActual === 'recetas') {
-    const { RecetasScreen } = require('./RecetasScreen');
-    return (
-      <RecetasScreen
-        navigation={{ goBack: volverAlInicio }}
-        onVerDetalle={(receta: { id: number; nombre: string }) => {
-          setRecetaSeleccionada(receta);
-          setPantallaActual('recetaDetalle');
-        }}
-      />
-    );
-  }
-
-  if (pantallaActual === 'ventas') {
-    const { VentasScreen } = require('./VentasScreen');
-    return (
-      <VentasScreen
-        navigation={{ goBack: volverAlInicio }}
-        onVerDetalleVenta={(venta: { id: number; cliente: string; fecha: string; total: number; lineas?: Array<{ nombre: string; cantidad: number; unit: number; total: number }> }) => {
-          setVentaSeleccionada(venta);
-          setPantallaActual('ventaDetalle');
-        }}
-      />
-    );
-  }
-
-  if (pantallaActual === 'productoDetalle' && productoSeleccionado) {
-    return (
-      <ProductoDetalleScreen
-        producto={productoSeleccionado}
-        navigation={{ goBack: () => setPantallaActual('productos') }}
-      />
-    );
-  }
-
-  if (pantallaActual === 'ventaDetalle' && ventaSeleccionada) {
-    const { VentaDetalleScreen } = require('./VentaDetalleScreen');
-    return (
-      <VentaDetalleScreen
-        venta={ventaSeleccionada}
-        navigation={{ goBack: () => setPantallaActual('ventas') }}
-      />
-    );
-  }
-
-  if (pantallaActual === 'recetaDetalle' && recetaSeleccionada) {
-    const { RecetaDetalleScreen } = require('./RecetaDetalleScreen');
-    return (
-      <RecetaDetalleScreen
-        receta={recetaSeleccionada}
-        navigation={{ goBack: () => setPantallaActual('recetas') }}
-      />
-    );
-  }
+  if (content) return content;
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
@@ -146,56 +127,38 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         <Text style={styles.headerSubtitle}>Inicio</Text>
       </View>
 
-
-
-      {/* Sección de alertas eliminada */}
-
-      {/* Acciones principales */}
       <View style={styles.actionsContainer}>
-        <TouchableOpacity 
-          style={styles.actionButton}
+        <HomeActionButton
+          icon="🛍️"
+          title="Productos"
+          subtitle="Gestionar productos y precios"
           onPress={navegarAProductos}
-        >
-          <Text style={styles.actionIcon}>🛍️</Text>
-          <Text style={styles.actionTitle}>Productos</Text>
-          <Text style={styles.actionSubtitle}>Gestionar productos y precios</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
-          style={styles.actionButton}
+        />
+        <HomeActionButton
+          icon="📦"
+          title="Ingredientes"
+          subtitle="Controlar stock y costos"
           onPress={navegarAIngredientes}
-        >
-          <Text style={styles.actionIcon}>📦</Text>
-          <Text style={styles.actionTitle}>Ingredientes</Text>
-          <Text style={styles.actionSubtitle}>Controlar stock y costos</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
+        />
+        <HomeActionButton
+          icon="👤"
+          title="Registrar cliente"
+          subtitle="Crear un nuevo cliente"
           onPress={navegarAClientes}
-        >
-          <Text style={styles.actionIcon}>👤</Text>
-          <Text style={styles.actionTitle}>Registrar cliente</Text>
-          <Text style={styles.actionSubtitle}>Crear un nuevo cliente</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.actionButton}
+        />
+        <HomeActionButton
+          icon="🧾"
+          title="Registrar venta"
+          subtitle="Crear una nueva venta"
           onPress={navegarAVentas}
-        >
-          <Text style={styles.actionIcon}>🧾</Text>
-          <Text style={styles.actionTitle}>Registrar venta</Text>
-          <Text style={styles.actionSubtitle}>Crear una nueva venta</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, styles.recetasButton]}
+        />
+        <HomeActionButton
+          icon="📖"
+          title="Recetas"
+          subtitle="Gestión de recetas"
           onPress={navegarARecetas}
-        >
-          <Text style={styles.actionIcon}>📖</Text>
-          <Text style={styles.actionTitle}>Recetas</Text>
-          <Text style={styles.actionSubtitle}>Gestión de recetas</Text>
-        </TouchableOpacity>
+          containerStyle={styles.recetasButton}
+        />
       </View>
 
     </ScrollView>

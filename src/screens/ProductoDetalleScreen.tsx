@@ -147,15 +147,12 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
           <Text style={styles.headerTitle}>{producto.nombre}</Text>
           <Text style={styles.headerSubtitle}>{producto.cantidad} unidades</Text>
         </View>
-        <View style={{ width: 68 }} />
+        <View style={styles.headerRightSpacer} />
       </View>
 
       <View style={styles.content}>
-        <TouchableOpacity
-          style={{ backgroundColor: '#28a745', paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginBottom: 12, marginTop: 12 }}
-          onPress={() => setMostrarModal(true)}
-        >
-          <Text style={{ color: '#fff', fontWeight: '600' }}>+ Agregar ingrediente</Text>
+        <TouchableOpacity style={styles.addButton} onPress={() => setMostrarModal(true)}>
+          <Text style={styles.btnTextStrongWhite}>+ Agregar ingrediente</Text>
         </TouchableOpacity>
 
         {ingredientesUsados.length > 0 ? (
@@ -165,15 +162,15 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
               data={ingredientesUsados}
               keyExtractor={(i) => i.id}
               renderItem={({ item }) => (
-                <View style={{ paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#1f1f1f', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <View style={styles.row}>
                   <View>
                     <Text style={styles.value}>{item.nombre}</Text>
                     <Text style={styles.label}>{item.cantidad} {item.unidad}</Text>
                   </View>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  <View style={styles.rowRight}>
                     <Text style={styles.value}>${Math.round(item.costo)}</Text>
-                    <TouchableOpacity onPress={() => setConfirm({ visible: true, id: item.id, nombre: item.nombre })} style={{ backgroundColor: '#dc3545', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}>
-                      <Text style={{ color: '#fff', fontWeight: '600' }}>Eliminar</Text>
+                    <TouchableOpacity onPress={() => setConfirm({ visible: true, id: item.id, nombre: item.nombre })} style={styles.deleteBtn}>
+                      <Text style={styles.btnTextStrongWhite}>Eliminar</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -183,27 +180,20 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
         ) : null}
 
         {ingredientesUsados.length > 0 ? (
-          <View style={[styles.card, { gap: 12 }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View style={[styles.card, styles.gap12]}>
+            <View style={styles.totalsRow}>
               <Text style={styles.label}>Total ingredientes</Text>
-              <Text style={[styles.value, { color: '#28a745' }]}>${Math.round(totalCosto)}</Text>
+              <Text style={[styles.value, styles.valueGreen]}>${Math.round(totalCosto)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={styles.totalsRow}>
               <Text style={styles.label}>Costo por unidad</Text>
-              <Text style={[styles.value, { color: '#28a745' }]}>${Math.round(costoUnitario)}</Text>
+              <Text style={[styles.value, styles.valueGreen]}>${Math.round(costoUnitario)}</Text>
             </View>
             {editandoGanancia ? (
               <View>
                 <Text style={styles.label}>Margen de ganancia (%)</Text>
                 <TextInput
-                  style={{
-                    height: 48,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: '#e9ecef',
-                    paddingHorizontal: 12,
-                    backgroundColor: '#fff',
-                  }}
+                  style={styles.input}
                   placeholder="Ej: 40"
                   keyboardType="numeric"
                   value={gananciaPct}
@@ -223,26 +213,23 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
                 />
               </View>
             ) : (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <View style={styles.totalsRow}>
                 <Text style={styles.label}>Margen de ganancia (%)</Text>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                  <TouchableOpacity
-                    onPress={() => setEditandoGanancia(true)}
-                    style={{ backgroundColor: '#007bff', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 }}
-                  >
-                    <Text style={{ color: '#fff', fontWeight: '600' }}>Editar</Text>
+                <View style={styles.rowCenterGap8}>
+                  <TouchableOpacity onPress={() => setEditandoGanancia(true)} style={styles.primaryBtn}>
+                    <Text style={styles.btnTextStrongWhite}>Editar</Text>
                   </TouchableOpacity>
-                  <Text style={[styles.value, { color: '#28a745' }]}>{Number.isFinite(Number(gananciaPct)) ? `${gananciaPct}%` : '--'}</Text>
+                  <Text style={[styles.value, styles.valueGreen]}>{Number.isFinite(Number(gananciaPct)) ? `${gananciaPct}%` : '--'}</Text>
                 </View>
               </View>
             )}
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={styles.totalsRow}>
               <Text style={styles.label}>Total con ganancia</Text>
-              <Text style={[styles.value, { color: '#28a745' }]}>${Math.round(totalConGanancia)}</Text>
+              <Text style={[styles.value, styles.valueGreen]}>${Math.round(totalConGanancia)}</Text>
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={styles.totalsRow}>
               <Text style={styles.label}>Precio por unidad (con ganancia)</Text>
-              <Text style={[styles.value, { color: '#28a745' }]}>${Math.round(costoUnitarioConGanancia)}</Text>
+              <Text style={[styles.value, styles.valueGreen]}>${Math.round(costoUnitarioConGanancia)}</Text>
             </View>
           </View>
         ) : null}

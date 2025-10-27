@@ -28,8 +28,8 @@ export const styles = StyleSheet.create({
     color: '#adb5bd',
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '500',
     color: '#f1f3f5',
   },
   botonGuardar: {

@@ -123,6 +123,7 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
             <TextInput
               style={modalStyles.input}
               placeholder="0"
+              placeholderTextColor="#adb5bd"
               value={cantidadUsada}
               onChangeText={setCantidadUsada}
               keyboardType="numeric"
