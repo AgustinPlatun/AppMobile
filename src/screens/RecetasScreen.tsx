@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import HeaderScreen from '../components/HeaderScreen';
 import * as NavigationBar from 'expo-navigation-bar';
 import { styles } from '../styles/ProductosScreenStyles';
 import { ModalReceta } from '../components/ModalReceta';
@@ -40,15 +41,11 @@ export const RecetasScreen: React.FC<RecetasScreenProps> = ({ navigation, onVerD
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.botonVolver} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Recetas</Text>
-        <TouchableOpacity style={styles.botonAgregar} onPress={() => setModalVisible(true)}>
-          <Text style={styles.botonAgregarTexto}>+ Agregar</Text>
-        </TouchableOpacity>
-      </View>
+      <HeaderScreen
+        title="Recetas"
+        onBack={() => navigation?.goBack?.()}
+        onAdd={() => setModalVisible(true)}
+      />
 
       <FlatList
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
@@ -57,7 +54,7 @@ export const RecetasScreen: React.FC<RecetasScreenProps> = ({ navigation, onVerD
         ListEmptyComponent={() => (
           <View style={styles.centerContainer}>
             <Text style={styles.emptyText}>No hay recetas aún</Text>
-            <Text style={styles.emptySubtext}>Toca “+ Agregar” para crear tu primera receta</Text>
+            <Text style={styles.emptySubtext}>Toca “+ Nuevo” para crear tu primera receta</Text>
           </View>
         )}
         renderItem={({ item }) => (

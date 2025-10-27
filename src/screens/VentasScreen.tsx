@@ -4,6 +4,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import styles from '../styles/VentasScreenStyles';
 import { ModalVenta } from '../components/ModalVenta';
 import { readVentasFromLocalExcel, appendVentaToLocalExcel, writeVentaLineasAllToLocalExcel, readVentaLineasAllFromLocalExcel, deleteVentaFromLocalExcel, readClientesFromLocalExcel } from '../utils/excel';
+import HeaderScreen from '../components/HeaderScreen';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { Picker } from '@react-native-picker/picker';
 
@@ -50,15 +51,11 @@ export const VentasScreen: React.FC<VentasScreenProps> = ({ navigation, onVerDet
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.botonVolver} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ventas</Text>
-        <TouchableOpacity style={styles.botonAgregar} onPress={() => setMostrarModal(true)}>
-          <Text style={styles.botonAgregarTexto}>+ Nuevo</Text>
-        </TouchableOpacity>
-      </View>
+      <HeaderScreen
+        title="Ventas"
+        onBack={() => navigation?.goBack?.()}
+        onAdd={() => setMostrarModal(true)}
+      />
 
       <View style={styles.busquedaContainer}>
         <View style={{ flexDirection: 'row', gap: 12 }}>

@@ -18,6 +18,14 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#f1f3f5',
   },
+  headerTitleUnderline: {
+    marginTop: 4,
+    height: 2,
+    backgroundColor: '#5B21B6',
+    borderRadius: 2,
+    alignSelf: 'flex-start',
+    width: '67%',
+  },
   headerSubtitle: {
     fontSize: 16,
     color: '#adb5bd',
@@ -55,6 +63,8 @@ export const styles = StyleSheet.create({
   },
   actionButton: {
     backgroundColor: '#1e1e1e',
+    borderWidth: 2,
+    borderColor: '#5B21B6',
     borderRadius: 12,
     padding: 20,
     shadowColor: '#000',

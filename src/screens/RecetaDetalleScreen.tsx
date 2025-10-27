@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList } from 'react-native';
+import BackButton from '../components/BackButton';
 import * as NavigationBar from 'expo-navigation-bar';
 import { styles } from '../styles/ProductosScreenStyles';
 import { ModalBloqueReceta } from '../components/ModalBloqueReceta';
@@ -40,9 +41,7 @@ export const RecetaDetalleScreen: React.FC<RecetaDetalleScreenProps> = ({ receta
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.botonVolver} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation?.goBack?.()} color="#007bff" />
         <Text style={[styles.headerTitle, { marginLeft: 10 }]}>{receta.nombre}</Text>
         <View style={{ width: 80 }} />
       </View>

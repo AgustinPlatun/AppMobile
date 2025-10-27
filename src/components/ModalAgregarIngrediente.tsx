@@ -49,12 +49,11 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
       Alert.alert('Error', 'Ingrediente no encontrado');
       return;
     }
-    onGuardar({ ingredienteId: op.id, nombre: op.nombre, unidad: op.unidad, cantidadUsada: Number(cantidadUsada) });
-    Alert.alert('Éxito', 'Ingrediente agregado');
-    setIngredienteId('');
-    setCantidadUsada('');
-    setNombreLibre('');
-    onCerrar();
+  onGuardar({ ingredienteId: op.id, nombre: op.nombre, unidad: op.unidad, cantidadUsada: Number(cantidadUsada) });
+  setIngredienteId('');
+  setCantidadUsada('');
+  setNombreLibre('');
+  onCerrar();
   };
 
   const cerrar = () => {
@@ -134,6 +133,7 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
             <Text style={modalStyles.ayudaTexto}>Seleccioná un ingrediente existente y la cantidad utilizada en la receta.</Text>
           </View>
         </ScrollView>
+        
       </View>
     </Modal>
   );

@@ -142,6 +142,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 24 }}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Rico y saludable</Text>
+        <View style={styles.headerTitleUnderline} />
         <Text style={styles.headerSubtitle}>Inicio</Text>
       </View>
 

@@ -13,6 +13,7 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { Picker } from '@react-native-picker/picker';
 import { styles } from '../styles/ModalIngredienteStyles';
 import { appendIngredienteToLocalExcel } from '../utils/excel';
+ 
 
 interface ModalIngredienteProps {
   visible: boolean;
@@ -82,11 +83,10 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
       fechaCreacion: new Date().toISOString(),
       activo: true,
     } as const;
-    const id = appendIngredienteToLocalExcel(payload);
-    onGuardado({ id, ...payload });
-    limpiarFormulario();
-    onCerrar();
-    Alert.alert('Éxito', 'Ingrediente agregado');
+  const id = appendIngredienteToLocalExcel(payload);
+  onGuardado({ id, ...payload });
+  limpiarFormulario();
+  onCerrar();
   };
 
   const cerrarModal = () => {
@@ -205,5 +205,9 @@ export const ModalIngrediente: React.FC<ModalIngredienteProps> = ({ visible, onC
     </Modal>
   );
 };
+ 
+// Agregar el modal de éxito al final del árbol para asegurar overlay sobre el contenido
+// Nota: se renderiza junto al contenido principal, controlado por "success.visible"
+
 
 

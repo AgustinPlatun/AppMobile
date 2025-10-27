@@ -30,18 +30,7 @@ export function productosToWorkbook(productos: ProductoExcel[]) {
   return wb;
 }
 
-export function downloadWorkbookWeb(wb: XLSX.WorkBook, filename: string) {
-  const wbout = XLSX.write(wb, { type: 'array', bookType: 'xlsx' });
-  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
+// downloadWorkbookWeb eliminado: ya no se usa para exportar desde Productos
 
 export async function parseProductosFromFileWeb(file: File): Promise<ProductoExcel[]> {
   const buffer = await file.arrayBuffer();
@@ -441,6 +430,51 @@ export function deleteIngredienteFromLocalExcel(ingredienteId: number): boolean 
   const remaining = all.filter(r => r.ingredienteId !== ingredienteId);
   writeProductoIngredientesAllToLocalExcel(remaining);
   return true;
+}
+
+/**
+ * Recalcula y persiste los totales (totalConGanancia y precioUnitarioConGanancia)
+ * de todos los productos en base a las relaciones Producto↔Ingrediente y los
+ * precios actuales de ingredientes. Respeta el gananciaPct guardado en cada producto.
+ */
+export function recomputeProductosTotalsFromIngredientes(): void {
+  const productos = readProductosFromLocalExcel();
+  if (!productos.length) return;
+  const ingredientes = readIngredientesFromLocalExcel();
+  const rels = readProductoIngredientesAllFromLocalExcel();
+
+  const findIng = (rel: { ingredienteId: number; nombre: string }) => {
+    let ing = ingredientes.find(i => (i.id ?? -1) === rel.ingredienteId);
+    if (!ing) {
+      const nombreLower = (rel.nombre || '').trim().toLowerCase();
+      ing = ingredientes.find(i => i.nombre.trim().toLowerCase() === nombreLower);
+    }
+    return ing;
+  };
+
+  const updated = productos.map(p => {
+    const relaciones = rels.filter(r => r.productoId === (p.id ?? -1));
+    let totalCosto = 0;
+    for (const r of relaciones) {
+      const ing = findIng(r);
+      if ( ing && Number.isFinite(ing.precio) && Number.isFinite(ing.cantidad) && ing.cantidad > 0 ) {
+        const unit = ing.precio / ing.cantidad;
+        totalCosto += unit * r.cantidadUsada;
+      }
+    }
+    const pct = Number(p.gananciaPct);
+    if (Number.isFinite(pct)) {
+      const totalGan = totalCosto * (1 + pct / 100);
+      const unidades = Number(p.cantidad || 0);
+      const unitGan = unidades > 0 ? totalGan / unidades : 0;
+      return { ...p, totalConGanancia: totalGan, precioUnitarioConGanancia: unitGan } as typeof p;
+    }
+    // Si no hay ganancia definida, limpiamos los campos para evitar valores viejos
+    const { totalConGanancia, precioUnitarioConGanancia, ...rest } = p as any;
+    return { ...rest } as typeof p;
+  });
+
+  writeProductosToLocalExcel(updated);
 }
 
 // ====== VENTAS ======

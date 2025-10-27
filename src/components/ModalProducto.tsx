@@ -77,7 +77,6 @@ export const ModalProducto: React.FC<ModalProductoProps> = ({ visible, onCerrar,
       onGuardado({ id, ...payload });
       limpiarFormulario();
       onCerrar();
-      Alert.alert('Éxito', `Producto agregado (ID ${id})`);
     } catch (e) {
       console.error(e);
       Alert.alert('Error', 'No se pudo guardar el producto');

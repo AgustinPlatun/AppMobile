@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Modal, TextInput, Platform } from 'react-native';
+import BackButton from '../components/BackButton';
 import { styles } from '../styles/ProductoDetalleScreenStyles';
 import * as NavigationBar from 'expo-navigation-bar';
 import { readVentaLineasByVentaId, updateVentaInLocalExcel, replaceVentaLineas, readProductosFromLocalExcel } from '../utils/excel';
@@ -69,9 +70,7 @@ export const VentaDetalleScreen: React.FC<VentaDetalleScreenProps> = ({ venta, n
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.botonVolver} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation?.goBack?.()} color="#3b82f6" />
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{ventaView.cliente || 'Venta sin cliente'}</Text>
           <Text style={styles.headerSubtitle}>{new Date(ventaView.fecha).toLocaleDateString()}</Text>

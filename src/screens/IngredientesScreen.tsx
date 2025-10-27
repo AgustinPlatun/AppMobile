@@ -4,9 +4,11 @@ import * as NavigationBar from 'expo-navigation-bar';
 import { styles } from '../styles/IngredientesScreenStyles';
 import { ModalIngrediente } from '../components/ModalIngrediente';
 import { ModalEditarIngrediente } from '../components/ModalEditarIngrediente';
-import { IngredienteExcel, deleteIngredienteFromLocalExcel } from '../utils/excel';
+import { IngredienteExcel, deleteIngredienteFromLocalExcel, recomputeProductosTotalsFromIngredientes } from '../utils/excel';
+import { eventBus } from '../utils/eventBus';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { readIngredientesFromLocalExcel } from '../utils/excel';
+import HeaderScreen from '../components/HeaderScreen';
 
 interface IngredientesScreenProps {
   navigation?: any;
@@ -51,10 +53,15 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
   const cerrarModal = () => setMostrarModal(false);
   const onIngredienteGuardado = (ing: any) => {
     setIngredientes((prev) => [ing, ...prev]);
+    // Recalcular totales de productos dependientes y notificar
+    try { recomputeProductosTotalsFromIngredientes(); } catch {}
+    eventBus.emit('ingredients:changed');
   };
 
   const onIngredienteActualizado = (ing: IngredienteExcel) => {
     setIngredientes((prev) => prev.map((x) => (x.id === ing.id ? ing : x)));
+    try { recomputeProductosTotalsFromIngredientes(); } catch {}
+    eventBus.emit('ingredients:changed');
   };
 
   const renderIngrediente = ({ item }: { item: any }) => (
@@ -85,15 +92,11 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.botonVolver} onPress={() => navigation?.goBack()}>
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ingredientes</Text>
-        <TouchableOpacity style={styles.botonAgregar} onPress={() => setMostrarModal(true)}>
-          <Text style={styles.botonAgregarTexto}>+ Nuevo</Text>
-        </TouchableOpacity>
-      </View>
+      <HeaderScreen
+        title="Ingredientes"
+        onBack={() => navigation?.goBack?.()}
+        onAdd={() => setMostrarModal(true)}
+      />
 
       <View style={styles.busquedaContainer}>
         <TextInput
@@ -137,6 +140,8 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
         const ok = deleteIngredienteFromLocalExcel(id);
         if (ok) {
           setIngredientes(prev => prev.filter(i => i.id !== id));
+          try { recomputeProductosTotalsFromIngredientes(); } catch {}
+          eventBus.emit('ingredients:changed');
         }
       }
       setConfirmState({ visible: false });

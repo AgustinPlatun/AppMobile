@@ -9,9 +9,11 @@ import {
 } from 'react-native';
 import { ModalProducto } from '../components/ModalProducto';
 import { styles } from '../styles/ProductosScreenStyles';
+import HeaderScreen from '../components/HeaderScreen';
 import { Producto } from '../types';
-import { downloadWorkbookWeb, productosToWorkbook, readProductosFromLocalExcel, deleteProductoFromLocalExcel } from '../utils/excel';
+import { readProductosFromLocalExcel, deleteProductoFromLocalExcel } from '../utils/excel';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { eventBus } from '../utils/eventBus';
 
 interface ProductosScreenProps {
   navigation?: any;
@@ -28,6 +30,14 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
 
   useEffect(() => {
     cargarProductos();
+  }, []);
+
+  // Escuchar cambios en ingredientes para refrescar productos cuando corresponda
+  useEffect(() => {
+    const off = eventBus.on('ingredients:changed', () => {
+      try { cargarProductos(); } catch {}
+    });
+    return () => { off(); };
   }, []);
 
   // Ajustar Navigation Bar para esta pantalla
@@ -59,17 +69,6 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
     }
   };
 
-  const exportarExcel = () => {
-    try {
-      const wb = productosToWorkbook(productos);
-      // Web: descarga directa
-      // En nativo, se podría usar expo-file-system + share
-      downloadWorkbookWeb(wb, 'productos.xlsx');
-    } catch (e) {
-      console.error('Error exportando Excel', e);
-    }
-  };
-
   // Importar Excel eliminado
 
   const cerrarModal = () => {
@@ -81,6 +80,7 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
     setProductos((prev) => [productoCreado, ...prev]);
     // Además, recargar desde DB para asegurar consistencia
     cargarProductos();
+  // Sin cartel de éxito: solo cerrar modal y actualizar lista
   };
 
   const renderProducto = ({ item }: { item: Producto }) => (
@@ -118,21 +118,11 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.botonVolver}
-          onPress={() => navigation?.goBack()}
-        >
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Productos</Text>
-        <TouchableOpacity
-          style={styles.botonAgregar}
-          onPress={() => setMostrarModal(true)}
-        >
-          <Text style={styles.botonAgregarTexto}>+ Nuevo</Text>
-        </TouchableOpacity>
-      </View>
+      <HeaderScreen
+        title="Productos"
+        onBack={() => navigation?.goBack?.()}
+        onAdd={() => setMostrarModal(true)}
+      />
 
       <View style={styles.busquedaContainer}>
         <TextInput
@@ -142,12 +132,7 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
           value={busqueda}
           onChangeText={setBusqueda}
         />
-        {/* Exportación */}
-        <View style={{ flexDirection: 'row', gap: 12, marginTop: 12 }}>
-          <TouchableOpacity style={styles.botonAgregar} onPress={exportarExcel}>
-            <Text style={styles.botonAgregarTexto}>Exportar Excel</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Exportación eliminada */}
       </View>
 
       {productos.length === 0 ? (
@@ -189,6 +174,8 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
           setConfirmState({ visible: false });
         }}
       />
+
+      
     </View>
   );
 };

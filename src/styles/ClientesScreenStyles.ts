@@ -5,39 +5,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#121212',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 20,
-    backgroundColor: '#121212',
-    borderBottomWidth: 1,
-    borderBottomColor: '#1f1f1f',
-  },
-  botonVolver: {
-    paddingVertical: 8,
-  },
-  botonVolverTexto: {
-    fontSize: 16,
-    color: '#3b82f6',
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#f1f3f5',
-  },
-  botonAgregar: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  botonAgregarTexto: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+  // header y boton agregar migraron a HeaderScreen
   busquedaContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -58,6 +26,8 @@ export const styles = StyleSheet.create({
   },
   clienteCard: {
     backgroundColor: '#1e1e1e',
+    borderWidth: 2,
+    borderColor: '#5B21B6',
     borderRadius: 12,
     padding: 10,
     marginBottom: 12,

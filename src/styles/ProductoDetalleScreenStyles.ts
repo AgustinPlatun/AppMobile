@@ -9,20 +9,14 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 50,
+    paddingHorizontal: 12,
+    paddingTop: 65,
     paddingBottom: 20,
     backgroundColor: '#121212',
     borderBottomWidth: 1,
     borderBottomColor: '#1f1f1f',
   },
-  botonVolver: {
-    paddingVertical: 8,
-  },
-  botonVolverTexto: {
-    fontSize: 16,
-    color: '#3b82f6',
-  },
+  // BackButton component handles its own styles; legacy botonVolver removed
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -52,6 +46,8 @@ export const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: '#1e1e1e',
+    borderWidth: 2,
+    borderColor: '#5B21B6',
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',

@@ -49,9 +49,8 @@ export const ModalEditarIngrediente: React.FC<ModalEditarIngredienteProps> = ({ 
       Alert.alert('Error', 'No se pudo actualizar el ingrediente');
       return;
     }
-    onActualizado(actualizado);
-    onCerrar();
-    Alert.alert('Éxito', 'Ingrediente actualizado');
+  onActualizado(actualizado);
+  onCerrar();
   };
 
   const cerrar = () => {
@@ -110,6 +109,7 @@ export const ModalEditarIngrediente: React.FC<ModalEditarIngredienteProps> = ({ 
           </View>
         </ScrollView>
       </View>
+        
     </Modal>
   );
 };

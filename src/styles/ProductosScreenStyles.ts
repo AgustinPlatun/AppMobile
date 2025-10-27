@@ -16,28 +16,13 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#1f1f1f',
   },
-  botonVolver: {
-    paddingVertical: 8,
-  },
-  botonVolverTexto: {
-    fontSize: 16,
-    color: '#007bff',
-  },
+  // BackButton component handles its own styles; legacy botonVolver removed
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#f1f3f5',
   },
-  botonAgregar: {
-    backgroundColor: '#3b82f6',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  botonAgregarTexto: {
-    color: '#fff',
-    fontWeight: '600',
-  },
+  // boton agregar migró a HeaderScreen
   busquedaContainer: {
     paddingHorizontal: 20,
     paddingVertical: 16,
@@ -58,6 +43,8 @@ export const styles = StyleSheet.create({
   },
   productoCard: {
     backgroundColor: '#1e1e1e',
+    borderWidth: 2,
+    borderColor: '#5B21B6',
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,

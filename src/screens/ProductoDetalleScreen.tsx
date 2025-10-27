@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, FlatList, TextInput, Platform } from 'react-native';
+import BackButton from '../components/BackButton';
 import * as NavigationBar from 'expo-navigation-bar';
 import { Producto } from '../types';
 import { styles } from '../styles/ProductoDetalleScreenStyles';
 import { ModalAgregarIngrediente } from '../components/ModalAgregarIngrediente';
-import { readIngredientesFromLocalExcel, appendProductoIngredienteToLocalExcel, readProductoIngredientesByProductoId, readProductosFromLocalExcel, updateProductoInLocalExcel, writeProductoIngredientesAllToLocalExcel, readProductoIngredientesAllFromLocalExcel } from '../utils/excel';
+import { readIngredientesFromLocalExcel, appendProductoIngredienteToLocalExcel, readProductoIngredientesByProductoId, readProductosFromLocalExcel, updateProductoInLocalExcel, writeProductoIngredientesAllToLocalExcel, readProductoIngredientesAllFromLocalExcel, recomputeProductosTotalsFromIngredientes } from '../utils/excel';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { eventBus } from '../utils/eventBus';
 
 interface ProductoDetalleScreenProps {
   producto: Producto;
@@ -119,6 +121,9 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
     }
     const nuevo = { id: `${sel.ingredienteId}-${Date.now()}`, ingredienteId: sel.ingredienteId, nombre: sel.nombre, unidad: sel.unidad, cantidad: sel.cantidadUsada, costo };
     setIngredientesUsados(prev => [nuevo, ...prev]);
+    // Actualizar totales persistidos y notificar refresco de listas que muestren precios
+    try { recomputeProductosTotalsFromIngredientes(); } catch {}
+    eventBus.emit('ingredients:changed');
   };
 
   const eliminarIngredienteUsado = (idRow: string) => {
@@ -129,14 +134,15 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
     const all = readProductoIngredientesAllFromLocalExcel();
     const remaining = all.filter(r => String(r.id ?? `${r.ingredienteId}-${r.cantidadUsada}`) !== idRow);
     writeProductoIngredientesAllToLocalExcel(remaining);
+    // Recalcular totales globales y notificar
+    try { recomputeProductosTotalsFromIngredientes(); } catch {}
+    eventBus.emit('ingredients:changed');
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.botonVolver} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
+        <BackButton onPress={() => navigation?.goBack?.()} color="#3b82f6" />
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{producto.nombre}</Text>
           <Text style={styles.headerSubtitle}>{producto.cantidad} unidades</Text>

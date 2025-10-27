@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, FlatList, Alert, Platform } from 'react-native';
+import HeaderScreen from '../components/HeaderScreen';
 import * as NavigationBar from 'expo-navigation-bar';
 import { styles } from '../styles/ClientesScreenStyles';
 import { ModalCliente } from '../components/ModalCliente';
@@ -50,15 +51,11 @@ export const ClientesScreen: React.FC<ClientesScreenProps> = ({ navigation }) =>
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.botonVolver} onPress={() => navigation?.goBack?.()}>
-          <Text style={styles.botonVolverTexto}>← Volver</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Clientes</Text>
-        <TouchableOpacity style={styles.botonAgregar} onPress={() => setMostrarModal(true)}>
-          <Text style={styles.botonAgregarTexto}>+ Nuevo</Text>
-        </TouchableOpacity>
-      </View>
+      <HeaderScreen
+        title="Clientes"
+        onBack={() => navigation?.goBack?.()}
+        onAdd={() => setMostrarModal(true)}
+      />
 
       <View style={styles.busquedaContainer}>
         <TextInput
@@ -121,6 +118,7 @@ export const ClientesScreen: React.FC<ClientesScreenProps> = ({ navigation }) =>
           // Optimista y luego recarga
           setClientes(prev => [nuevo as any, ...prev]);
           setMostrarModal(false);
+          // Sin cartel de éxito: se cierra el modal y se actualiza la lista
         }}
       />
 
@@ -140,6 +138,8 @@ export const ClientesScreen: React.FC<ClientesScreenProps> = ({ navigation }) =>
           setConfirmState({ visible: false });
         }}
       />
+
+      
 
       <ModalEditarCliente
         visible={editState.visible}
