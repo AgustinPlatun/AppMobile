@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, FlatList, TextInput, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, TextInput, Platform, ScrollView } from 'react-native';
 import BackButton from '../components/BackButton';
 import * as NavigationBar from 'expo-navigation-bar';
 import { Producto } from '../types';
@@ -15,6 +15,8 @@ interface ProductoDetalleScreenProps {
 }
 
 export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ producto, navigation }) => {
+  const [leftSlotWidth, setLeftSlotWidth] = React.useState(0);
+  const rightSlotWidth = Math.max(0, leftSlotWidth - 24);
   const [mostrarModal, setMostrarModal] = React.useState(false);
   const [ingredientesUsados, setIngredientesUsados] = React.useState<Array<{ id: string; ingredienteId: number; nombre: string; unidad: string; cantidad: number; costo: number }>>([]);
   const [confirm, setConfirm] = React.useState<{ visible: boolean; id?: string; nombre?: string }>({ visible: false });
@@ -142,15 +144,17 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <BackButton onPress={() => navigation?.goBack?.()} color="#3b82f6" />
+        <View  onLayout={(e) => setLeftSlotWidth(e.nativeEvent.layout.width)}>
+          <BackButton onPress={() => navigation?.goBack?.()} color="#3b82f6" />
+        </View>
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle}>{producto.nombre}</Text>
           <Text style={styles.headerSubtitle}>{producto.cantidad} unidades</Text>
         </View>
-        <View style={styles.headerRightSpacer} />
+        <View style={ { width: rightSlotWidth }} />
       </View>
 
-      <View style={styles.content}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content}>
         <TouchableOpacity style={styles.addButton} onPress={() => setMostrarModal(true)}>
           <Text style={styles.btnTextStrongWhite}>+ Agregar ingrediente</Text>
         </TouchableOpacity>
@@ -161,6 +165,7 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
             <FlatList
               data={ingredientesUsados}
               keyExtractor={(i) => i.id}
+              scrollEnabled={false}
               renderItem={({ item }) => (
                 <View style={styles.row}>
                   <View>
@@ -233,7 +238,7 @@ export const ProductoDetalleScreen: React.FC<ProductoDetalleScreenProps> = ({ pr
             </View>
           </View>
         ) : null}
-      </View>
+      </ScrollView>
 
       <ModalAgregarIngrediente
         visible={mostrarModal}

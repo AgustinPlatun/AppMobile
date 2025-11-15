@@ -15,7 +15,8 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
   const [clientes, setClientes] = useState<Array<{ id: number; nombre: string; apellido?: string }>>([]);
   const [selectedClienteId, setSelectedClienteId] = useState<number | null>(null);
   const [productos, setProductos] = useState<Array<any>>([]);
-  const [selectedProductoId, setSelectedProductoId] = useState<number | null>(null);
+  // Usamos string para tener consistencia con Picker/select (devuelven string).
+  const [selectedProductoId, setSelectedProductoId] = useState<string>('');
   const [cantidadTemp, setCantidadTemp] = useState('');
   const [lineas, setLineas] = useState<Array<{ productoId: number; nombre: string; cantidad: number; unit: number; total: number }>>([]);
   const [envio, setEnvio] = useState('');
@@ -51,7 +52,7 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
 
   const cerrar = () => {
     setSelectedClienteId(null);
-    setSelectedProductoId(null);
+    setSelectedProductoId('');
     setCantidadTemp('');
     setLineas([]);
     setEnvio('');
@@ -182,8 +183,8 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
             <View style={{ flex: 1 }}>
               {Platform.OS === 'web' ? (
                 <select
-                  value={selectedProductoId ?? ''}
-                  onChange={(e) => setSelectedProductoId(e.target.value ? Number(e.target.value) : null)}
+                  value={selectedProductoId}
+                  onChange={(e) => setSelectedProductoId(e.target.value)}
                   style={{
                     height: 48,
                     borderRadius: 12,
@@ -194,14 +195,14 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
                 >
                   <option value="">Seleccionar producto</option>
                   {productos.map(p => (
-                    <option key={p.id} value={p.id}>{p.nombre}</option>
+                    <option key={p.id} value={String(p.id)}>{p.nombre}</option>
                   ))}
                 </select>
               ) : (
                 <View style={{ backgroundColor: '#1e1e1e', borderRadius: 12, borderWidth: 1, borderColor: '#2a2a2a' }}>
                   <Picker
-                    selectedValue={selectedProductoId ?? ''}
-                    onValueChange={(val: any) => setSelectedProductoId(val ? Number(val) : null)}
+                    selectedValue={selectedProductoId}
+                    onValueChange={(val: any) => setSelectedProductoId(val)}
                     dropdownIconColor="#adb5bd"
                     style={{ color: '#f1f3f5' }}
                   >
@@ -225,14 +226,17 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
             </View>
             <TouchableOpacity
               onPress={() => {
-                const pid = selectedProductoId;
+                const pidStr = selectedProductoId;
                 const qty = Number(cantidadTemp);
-                const prod = productos.find((p) => p.id === pid);
-                if (!pid || !prod || !Number.isFinite(qty) || qty <= 0) return;
+                if (!pidStr || !Number.isFinite(qty) || qty <= 0) return;
+                const pid = Number(pidStr);
+                const prod = productos.find((p) => Number(p.id) === pid);
+                if (!prod) return;
                 const unit = Number(prod.precioUnitarioConGanancia ?? 0);
                 const total = unit * qty;
                 setLineas(prev => [...prev, { productoId: pid, nombre: prod.nombre, cantidad: qty, unit, total }]);
-                setSelectedProductoId(null);
+                // Limpiamos selección para permitir re-seleccionar mismo producto tras eliminar
+                setSelectedProductoId('');
                 setCantidadTemp('');
               }}
               style={{ backgroundColor: '#28a745', paddingHorizontal: 12, paddingVertical: 12, borderRadius: 8 }}
@@ -251,7 +255,16 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
                 </View>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                   <Text style={{ color: '#28a745', fontWeight: '700' }}>${Math.round(l.total)}</Text>
-                  <TouchableOpacity onPress={() => setLineas(prev => prev.filter((_, i) => i !== idx))} style={{ backgroundColor: '#dc3545', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}>
+                  <TouchableOpacity
+                    onPress={() => {
+                      setLineas(prev => prev.filter((_, i) => i !== idx));
+                      // Si elimina el mismo producto que está seleccionado, limpiar selección para permitir re-agregar
+                      if (String(l.productoId) === selectedProductoId) {
+                        setSelectedProductoId('');
+                      }
+                    }}
+                    style={{ backgroundColor: '#dc3545', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 }}
+                  >
                     <Text style={{ color: '#fff', fontWeight: '700' }}>Eliminar</Text>
                   </TouchableOpacity>
                 </View>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import * as NavigationBar from 'expo-navigation-bar';
 import {
   View,
@@ -116,6 +116,10 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
     </TouchableOpacity>
   );
 
+  const productosOrdenados = useMemo(() => {
+    return productos.slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  }, [productos]);
+
   return (
     <View style={styles.container}>
       <HeaderScreen
@@ -144,7 +148,7 @@ export const ProductosScreen: React.FC<ProductosScreenProps> = ({ navigation, on
         </View>
       ) : (
         <FlatList
-          data={productos}
+          data={productosOrdenados}
           renderItem={renderProducto}
           keyExtractor={(item) => String(item.id)}
           style={styles.list}

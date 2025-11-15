@@ -142,13 +142,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         />
         <HomeActionButton
           icon="👤"
-          title="Registrar cliente"
+          title="Clientes"
           subtitle="Crear un nuevo cliente"
           onPress={navegarAClientes}
         />
         <HomeActionButton
           icon="🧾"
-          title="Registrar venta"
+          title="Ventas"
           subtitle="Crear una nueva venta"
           onPress={navegarAVentas}
         />

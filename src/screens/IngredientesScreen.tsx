@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity, TextInput, FlatList, Platform } from 'react-native';
 import * as NavigationBar from 'expo-navigation-bar';
 import { styles } from '../styles/IngredientesScreenStyles';
@@ -90,6 +90,10 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
     </View>
   );
 
+  const ingredientesOrdenados = useMemo(() => {
+    return ingredientes.slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  }, [ingredientes]);
+
   return (
     <View style={styles.container}>
       <HeaderScreen
@@ -115,7 +119,7 @@ export const IngredientesScreen: React.FC<IngredientesScreenProps> = ({ navigati
         </View>
       ) : (
         <FlatList
-          data={ingredientes}
+          data={ingredientesOrdenados}
           renderItem={renderIngrediente}
           keyExtractor={(item) => String(item.id)}
           style={styles.list}

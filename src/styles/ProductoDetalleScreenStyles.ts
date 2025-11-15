@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingTop: 65,
     paddingBottom: 20,
     backgroundColor: '#121212',
@@ -21,9 +21,12 @@ export const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#f1f3f5',
+    textAlign: 'center',
+    flexShrink: 1,
   },
   headerCenter: {
     alignItems: 'center',
+    flex: 1,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -115,6 +118,6 @@ export const styles = StyleSheet.create({
     gap: 12,
   },
   headerRightSpacer: {
-    width: 68,
+    width: 110,
   },
 });
