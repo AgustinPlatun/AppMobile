@@ -21,6 +21,9 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
   const [lineas, setLineas] = useState<Array<{ productoId: number; nombre: string; cantidad: number; unit: number; total: number }>>([]);
   const [envio, setEnvio] = useState('');
   const [estado, setEstado] = useState<'pagado' | 'señado' | 'no pagado'>('pagado');
+  const productosOrdenados = useMemo(() => {
+    return productos.slice().sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es', { sensitivity: 'base' }));
+  }, [productos]);
 
   useEffect(() => {
     if (Platform.OS === 'android' && visible) {
@@ -194,7 +197,7 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
                   } as any}
                 >
                   <option value="">Seleccionar producto</option>
-                  {productos.map(p => (
+                  {productosOrdenados.map(p => (
                     <option key={p.id} value={String(p.id)}>{p.nombre}</option>
                   ))}
                 </select>
@@ -207,7 +210,7 @@ export const ModalVenta: React.FC<ModalVentaProps> = ({ visible, onCerrar, onGua
                     style={{ color: '#f1f3f5' }}
                   >
                     <Picker.Item label="Seleccionar producto" value="" />
-                    {productos.map(p => (
+                    {productosOrdenados.map(p => (
                       <Picker.Item key={p.id} label={String(p.nombre)} value={String(p.id)} />
                     ))}
                   </Picker>

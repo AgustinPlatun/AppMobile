@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, FlatList, Alert, Platform } from 'react-native';
 import HeaderScreen from '../components/HeaderScreen';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -49,6 +49,14 @@ export const ClientesScreen: React.FC<ClientesScreenProps> = ({ navigation }) =>
     setClientes(data as Cliente[]);
   };
 
+  const clientesFiltradosOrdenados = useMemo(() => {
+    const term = busqueda.toLowerCase();
+    const filtered = clientes.filter(c => `${c.nombre} ${c.apellido}`.toLowerCase().includes(term));
+    return filtered.sort((a, b) =>
+      `${a.nombre} ${a.apellido}`.localeCompare(`${b.nombre} ${b.apellido}`, 'es', { sensitivity: 'base' })
+    );
+  }, [clientes, busqueda]);
+
   return (
     <View style={styles.container}>
       <HeaderScreen
@@ -74,7 +82,7 @@ export const ClientesScreen: React.FC<ClientesScreenProps> = ({ navigation }) =>
         </View>
       ) : (
         <FlatList
-          data={clientes.filter(c => `${c.nombre} ${c.apellido}`.toLowerCase().includes(busqueda.toLowerCase()))}
+          data={clientesFiltradosOrdenados}
           keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <View style={styles.clienteCard}>

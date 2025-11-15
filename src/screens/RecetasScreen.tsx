@@ -39,6 +39,10 @@ export const RecetasScreen: React.FC<RecetasScreenProps> = ({ navigation, onVerD
     setRecetas(prev => [receta, ...prev]);
   };
 
+  const recetasOrdenadas = useMemo(() => {
+    return recetas.slice().sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+  }, [recetas]);
+
   return (
     <View style={styles.container}>
       <HeaderScreen
@@ -49,7 +53,7 @@ export const RecetasScreen: React.FC<RecetasScreenProps> = ({ navigation, onVerD
 
       <FlatList
         contentContainerStyle={{ padding: 20, paddingBottom: 40 }}
-        data={recetas}
+        data={recetasOrdenadas}
         keyExtractor={(item) => String(item.id)}
         ListEmptyComponent={() => (
           <View style={styles.centerContainer}>

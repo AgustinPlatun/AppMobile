@@ -23,7 +23,8 @@ export const ModalAgregarIngrediente: React.FC<ModalAgregarIngredienteProps> = (
       const lista = readIngredientesFromLocalExcel();
       const ops = lista
         .filter(i => !!i.nombre)
-        .map((i, idx) => ({ id: i.id ?? idx + 1, nombre: i.nombre, unidad: i.unidad }));
+        .map((i, idx) => ({ id: i.id ?? idx + 1, nombre: i.nombre, unidad: i.unidad }))
+        .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
       setOpciones(ops);
     }
   }, [visible]);

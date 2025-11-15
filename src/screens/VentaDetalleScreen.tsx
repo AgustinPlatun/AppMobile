@@ -58,6 +58,9 @@ export const VentaDetalleScreen: React.FC<VentaDetalleScreenProps> = ({ venta, n
   const [productos, setProductos] = useState<any[]>([]);
   const [selectedProductoId, setSelectedProductoId] = useState<number | null>(null);
   const [cantidadTemp, setCantidadTemp] = useState('');
+  const productosOrdenados = useMemo(() => {
+    return productos.slice().sort((a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es', { sensitivity: 'base' }));
+  }, [productos]);
 
   useEffect(() => {
     if (editVisible) {
@@ -186,7 +189,7 @@ export const VentaDetalleScreen: React.FC<VentaDetalleScreenProps> = ({ venta, n
                     style={ventaStyles.selectWeb as any}
                   >
                     <option value="">Seleccionar producto</option>
-                    {productos.map(p => (
+                    {productosOrdenados.map(p => (
                       <option key={p.id} value={p.id}>{p.nombre}</option>
                     ))}
                   </select>
@@ -199,7 +202,7 @@ export const VentaDetalleScreen: React.FC<VentaDetalleScreenProps> = ({ venta, n
                       style={ventaStyles.pickerText}
                     >
                       <Picker.Item label="Seleccionar producto" value="" />
-                      {productos.map(p => (
+                      {productosOrdenados.map(p => (
                         <Picker.Item key={p.id} label={String(p.nombre)} value={String(p.id)} />
                       ))}
                     </Picker>
